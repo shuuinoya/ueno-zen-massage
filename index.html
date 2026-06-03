@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>UENO ZEN MASSAGE — Reservation</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Noto+Serif+JP:wght@200;300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://js.stripe.com/v3/"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --bg:#080808;--surface:#0f0f0f;--surface2:#161616;
+  --border:#1e1e1e;--border2:#2a2a2a;
+  --gold:#b8965a;--gold2:#d4b483;--gold3:#f0d9a8;
+  --text:#f0ece4;--text2:#a09890;--text3:#5a5550;
+  --success:#4a9e74;--error:#c0504a;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;min-height:100vh;overflow-x:hidden}
+.page{display:none;min-height:100vh}
+.page.active{display:block;animation:pageIn .45s ease both}
+@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* HEADER */
+.site-header{position:sticky;top:0;z-index:100;background:rgba(8,8,8,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:56px;gap:10px}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:300;letter-spacing:.2em;color:var(--text);text-transform:uppercase;white-space:nowrap}
+.logo span{color:var(--gold)}
+.lang-sw{display:flex;gap:2px;background:var(--surface2);border-radius:6px;padding:2px;flex-wrap:wrap;justify-content:flex-end}
+.lang-btn{padding:3px 7px;border-radius:4px;font-size:.58rem;letter-spacing:.06em;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;background:transparent;color:var(--text3);transition:all .2s;white-space:nowrap}
+.lang-btn.active{background:var(--gold);color:#000;font-weight:500}
+
+/* HERO */
+.hero{padding:52px 22px 44px;text-align:center;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
+.hero::before{content:'禅';position:absolute;font-family:'Noto Serif JP',serif;font-size:22vw;color:rgba(184,150,90,.04);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;user-select:none}
+.hero-badge{color:var(--gold);font-size:.62rem;letter-spacing:.42em;text-transform:uppercase;margin-bottom:20px;display:block}
+.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.2rem,6vw,3.2rem);font-weight:300;letter-spacing:.08em;line-height:1.08;margin-bottom:8px}
+.hero h1 em{font-style:italic;color:var(--gold2)}
+.hero-sub{font-family:'Noto Serif JP',serif;font-size:.68rem;color:var(--text2);letter-spacing:.2em;margin-bottom:32px;display:block}
+.hero-cta{display:inline-flex;align-items:center;gap:10px;background:var(--gold);color:#000;padding:14px 36px;border-radius:2px;font-size:.74rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;transition:all .3s;position:relative;overflow:hidden}
+.hero-cta::before{content:'';position:absolute;inset:0;background:rgba(255,255,255,.15);transform:translateX(-100%);transition:transform .3s}
+.hero-cta:hover::before{transform:translateX(0)}
+.hero-cta:hover{box-shadow:0 8px 32px rgba(184,150,90,.28);transform:translateY(-1px)}
+.social-row{margin-top:26px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.s-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:.66rem;color:var(--text2);text-decoration:none;transition:all .2s}
+.s-pill:hover{border-color:var(--gold);color:var(--gold)}
+
+/* PROGRESS */
+.prog-wrap{padding:0 18px;margin:22px 0}
+.prog-steps{display:flex;align-items:center}
+.prog-step{display:flex;flex-direction:column;align-items:center;flex:1}
+.prog-dot{width:21px;height:21px;border-radius:50%;border:1px solid var(--border2);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:.56rem;color:var(--text3);transition:all .3s;position:relative;z-index:1}
+.prog-step.active .prog-dot{border-color:var(--gold);background:var(--gold);color:#000}
+.prog-step.done .prog-dot{border-color:var(--success);background:var(--success);color:#fff}
+.prog-lbl{font-size:.5rem;color:var(--text3);margin-top:4px;letter-spacing:.04em;text-align:center;line-height:1.3;max-width:40px}
+.prog-step.active .prog-lbl{color:var(--gold)}
+.prog-line{flex:1;height:1px;background:var(--border);margin:0 -1px;position:relative;top:-8px}
+
+/* CARDS */
+.sec-card{margin:0 13px 16px;background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.sec-head{padding:16px 18px 13px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:10px}
+.sec-num{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--gold);font-weight:300;line-height:1}
+.sec-title{font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--text2)}
+.sec-body{padding:16px 18px}
+
+/* MENU */
+.menu-cat{margin-bottom:20px}
+.menu-cat-hd{font-family:'Cormorant Garamond',serif;font-size:.92rem;color:var(--gold2);border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:baseline}
+.menu-cat-en{font-size:.6rem;color:var(--text3);font-family:'DM Sans',sans-serif;letter-spacing:.08em}
+.menu-item{display:flex;align-items:center;gap:11px;padding:11px 13px;margin-bottom:4px;border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all .2s;background:var(--bg);position:relative}
+.menu-item:hover{border-color:var(--gold)}
+.menu-item.selected{border-color:var(--gold);background:rgba(184,150,90,.06)}
+.menu-item.selected::after{content:'✓';position:absolute;right:13px;color:var(--gold);font-size:.84rem}
+.m-num{width:23px;height:23px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:.66rem;color:var(--text3);flex-shrink:0;font-family:'Cormorant Garamond',serif;transition:all .2s}
+.menu-item.selected .m-num{border-color:var(--gold);color:var(--gold)}
+.m-info{flex:1}
+.m-dur{font-size:.65rem;color:var(--text3);letter-spacing:.06em;margin-bottom:1px}
+.m-price{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--text)}
+.m-price sup{font-size:.58em;vertical-align:super;margin-right:1px}
+.outcall-box{background:rgba(184,150,90,.08);border:1px solid rgba(184,150,90,.2);border-radius:3px;padding:10px 13px;font-size:.68rem;color:var(--gold2);margin-bottom:16px;line-height:1.6}
+
+/* CALENDAR */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.cal-nav button{background:none;border:1px solid var(--border2);color:var(--text2);width:28px;height:28px;border-radius:3px;cursor:pointer;font-size:.88rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.cal-nav button:hover{border-color:var(--gold);color:var(--gold)}
+.cal-month{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:300}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dh{text-align:center;font-size:.57rem;color:var(--text3);padding:3px 0;letter-spacing:.04em}
+.cal-d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:3px;font-size:.73rem;cursor:pointer;border:1px solid transparent;transition:all .15s;color:var(--text2)}
+.cal-d:hover:not(.cp):not(.ce):not(.cb){border-color:var(--gold);color:var(--gold)}
+.cal-d.cs{background:var(--gold);color:#000;font-weight:500}
+.cal-d.cp,.cal-d.cb{color:#252525;cursor:default}
+.cal-d.ct{color:var(--gold2)}
+.cal-d.ce{cursor:default}
+
+/* TIME SLOTS */
+.time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.ts{padding:8px 3px;border:1px solid var(--border);border-radius:3px;text-align:center;font-size:.7rem;cursor:pointer;transition:all .15s;color:var(--text2)}
+.ts:hover{border-color:var(--gold);color:var(--gold)}
+.ts.sel{background:var(--gold);color:#000;border-color:var(--gold)}
+.ts.bkd{color:#252525;border-color:var(--border);cursor:default;font-size:.6rem}
+.ts.blk{color:#252525;border-color:var(--border);cursor:default}
+.ts.soon{color:#3a3a3a;border-color:var(--border);cursor:default;font-size:.62rem}
+
+/* LOCATION */
+.loc-opt{border:1px solid var(--border);border-radius:3px;padding:13px 15px;margin-bottom:6px;cursor:pointer;transition:all .2s;display:flex;gap:11px;align-items:flex-start}
+.loc-opt:hover{border-color:var(--gold)}
+.loc-opt.selected{border-color:var(--gold);background:rgba(184,150,90,.05)}
+.loc-radio{width:16px;height:16px;border-radius:50%;border:1px solid var(--border2);flex-shrink:0;margin-top:3px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.loc-opt.selected .loc-radio{border-color:var(--gold);background:var(--gold)}
+.loc-opt.selected .loc-radio::after{content:'';width:5px;height:5px;border-radius:50%;background:#000}
+.loc-name{font-size:.8rem;margin-bottom:2px;color:var(--text)}
+.loc-sub{font-size:.62rem;color:var(--text3)}
+.loc-extra{font-size:.64rem;color:var(--text3);margin-top:3px;line-height:1.5}
+.loc-fields{display:none;margin-top:11px}
+.loc-fields.show{display:block}
+.loc-note{background:rgba(184,150,90,.07);border:1px solid rgba(184,150,90,.18);border-radius:3px;padding:10px 13px;font-size:.68rem;color:var(--gold2);margin-top:9px;line-height:1.7}
+.map-link{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 14px;border:1px solid var(--gold);border-radius:3px;font-size:.68rem;color:var(--gold);text-decoration:none;transition:all .2s}
+.map-link:hover{background:var(--gold);color:#000}
+
+/* SALON PREVIEW */
+.salon-preview{margin-top:12px;border:1px solid var(--border);border-radius:4px;overflow:hidden;background:var(--surface2)}
+.salon-preview-img{width:100%;height:160px;object-fit:cover;display:block}
+.salon-preview-body{padding:12px 14px}
+.salon-preview-name{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--gold2);margin-bottom:4px}
+.salon-preview-addr{font-size:.66rem;color:var(--text3);line-height:1.6}
+
+/* FORM */
+.fg{margin-bottom:12px}
+.fl{font-size:.64rem;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:6px;display:block}
+.fi{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:11px 12px;border-radius:3px;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:300;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+.fi:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,150,90,.08)}
+.fi.err{border-color:var(--error)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+textarea.fi{resize:vertical}
+.hint{font-size:.62rem;color:var(--text3);margin-top:4px;opacity:.7}
+.warn{font-size:.62rem;color:#c0854a;margin-top:4px}
+
+/* PAYMENT */
+.pay-opt{border:1px solid var(--border);border-radius:3px;padding:13px 15px;margin-bottom:6px;cursor:pointer;transition:all .2s;display:flex;gap:11px;align-items:center}
+.pay-opt:hover{border-color:var(--gold)}
+.pay-opt.selected{border-color:var(--gold);background:rgba(184,150,90,.05)}
+.pay-icon{font-size:1.2rem}
+.pay-name{font-size:.8rem;margin-bottom:2px}
+.pay-desc{font-size:.65rem;color:var(--text3);line-height:1.5}
+.pay-radio{width:16px;height:16px;border-radius:50%;border:1px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-left:auto}
+.pay-opt.selected .pay-radio{border-color:var(--gold);background:var(--gold)}
+.pay-opt.selected .pay-radio::after{content:'';width:5px;height:5px;border-radius:50%;background:#000}
+
+/* STRIPE */
+.stripe-wrap{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:13px;margin-top:10px;transition:border-color .2s,box-shadow .2s}
+.stripe-wrap.focused{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,150,90,.09)}
+.stripe-wrap.invalid{border-color:var(--error)}
+.card-err{color:var(--error);font-size:.7rem;margin-top:6px;min-height:14px}
+.brands{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+.brand{padding:2px 7px;border:1px solid var(--border2);border-radius:3px;font-size:.6rem;font-weight:700;letter-spacing:.04em;transition:all .2s}
+.brand-v{color:#1a72bb;border-color:#1a72bb33}
+.brand-m{color:#eb001b;border-color:#eb001b33}
+.brand-a{color:#2e77bc;border-color:#2e77bc33}
+.brand-j{color:#00aa41;border-color:#00aa4133}
+
+/* TERMS */
+.terms-box{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:13px;max-height:180px;overflow-y:auto;font-size:.68rem;color:var(--text2);line-height:1.85;margin-bottom:12px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.terms-box::-webkit-scrollbar{width:3px}
+.terms-box::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.terms-box p{margin-bottom:6px}
+.terms-box .ten{color:var(--text3);font-size:.64rem;margin-top:9px;border-top:1px solid var(--border);padding-top:9px}
+.terms-chk{display:flex;gap:10px;align-items:flex-start;padding:13px;border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:border-color .2s;margin-top:10px}
+.terms-chk:hover{border-color:var(--gold)}
+.terms-chk.checked{border-color:var(--gold);background:rgba(184,150,90,.05)}
+.chk-box{width:18px;height:18px;border:1px solid var(--border2);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:1px;font-size:.7rem}
+.terms-chk.checked .chk-box{background:var(--gold);border-color:var(--gold);color:#000}
+.chk-txt{font-size:.74rem;color:var(--text);line-height:1.5}
+.chk-txt small{display:block;font-size:.63rem;color:var(--text3);margin-top:2px}
+
+/* CONFIRM */
+.conf-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);gap:13px}
+.conf-row:last-child{border-bottom:none}
+.conf-key{font-size:.62rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;flex-shrink:0;padding-top:2px}
+.conf-val{font-size:.8rem;color:var(--text);text-align:right;line-height:1.5}
+.conf-total{background:rgba(184,150,90,.08);border:1px solid rgba(184,150,90,.2);border-radius:3px;padding:14px;margin-top:14px;text-align:center}
+.conf-total-lbl{font-size:.6rem;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px}
+.conf-total-amt{font-family:'Cormorant Garamond',serif;font-size:1.9rem;color:var(--gold2)}
+.conf-total-bd{font-size:.64rem;color:var(--text3);margin-top:2px}
+
+/* SUCCESS */
+.succ-wrap{padding:52px 22px;text-align:center}
+.succ-icon{width:66px;height:66px;border-radius:50%;border:1px solid var(--gold);background:rgba(184,150,90,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:1.6rem;animation:scaleIn .5s .2s both}
+@keyframes scaleIn{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.succ-title{font-family:'Cormorant Garamond',serif;font-size:1.75rem;font-weight:300;margin-bottom:8px;letter-spacing:.08em}
+.succ-msg{font-size:.8rem;color:var(--text2);line-height:1.8;margin-bottom:4px}
+.succ-divider{width:34px;height:1px;background:var(--gold);margin:20px auto}
+.succ-ref{font-size:.6rem;color:var(--text3);letter-spacing:.14em;margin-bottom:2px}
+.succ-id{font-family:'Cormorant Garamond',serif;font-size:1.35rem;color:var(--gold);letter-spacing:.1em}
+.notif-list{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:3px 16px;margin:16px 0;text-align:left}
+.notif-item{display:flex;gap:10px;align-items:flex-start;font-size:.71rem;color:var(--text3);padding:11px 0;border-bottom:1px solid var(--border)}
+.notif-item:last-child{border-bottom:none}
+.notif-icon{font-size:.95rem;flex-shrink:0;margin-top:1px}
+.notif-item strong{color:var(--text);display:block;margin-bottom:2px;font-size:.73rem}
+
+/* BUTTONS */
+.btn-wrap{padding:0 13px 20px}
+.btn-p{width:100%;padding:14px;background:var(--gold);color:#000;border:none;border-radius:2px;font-family:'DM Sans',sans-serif;font-size:.74rem;font-weight:500;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .25s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-p:hover:not(:disabled){background:var(--gold3);transform:translateY(-1px);box-shadow:0 8px 26px rgba(184,150,90,.22)}
+.btn-p:disabled{opacity:.32;cursor:default;transform:none;box-shadow:none}
+.btn-s{width:100%;padding:12px;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:2px;font-family:'DM Sans',sans-serif;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;margin-top:8px}
+.btn-s:hover{border-color:var(--text2);color:var(--text)}
+.spin{width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;display:none}
+.btn-p.loading .spin{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.notice-bar{background:rgba(184,150,90,.07);border:1px solid rgba(184,150,90,.18);border-radius:3px;padding:9px 12px;font-size:.66rem;color:var(--gold2);line-height:1.6;margin-bottom:12px}
+.divider{height:1px;background:var(--border);margin:16px 0}
+
+/* ADMIN */
+.adm-hd{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.adm-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;letter-spacing:.1em}
+.adm-tag{font-size:.56rem;background:var(--gold);color:#000;padding:2px 7px;border-radius:2px;font-weight:600;letter-spacing:.1em;margin-left:7px}
+.adm-tabs{display:flex;border-bottom:1px solid var(--border);overflow-x:auto}
+.adm-tab{padding:12px 16px;font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;transition:all .2s;background:none;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;white-space:nowrap}
+.adm-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.adm-content{padding:16px}
+.adm-panel{display:none}
+.adm-panel.active{display:block}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:16px}
+.stat-c{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:13px}
+.stat-n{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold2)}
+.stat-l{font-size:.6rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+.res-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:13px;margin-bottom:8px;display:flex;gap:11px;align-items:flex-start}
+.res-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;margin-top:6px}
+.res-name{font-size:.8rem;margin-bottom:3px}
+.res-det{font-size:.66rem;color:var(--text3);line-height:1.65}
+.res-amt{font-family:'Cormorant Garamond',serif;font-size:.93rem;color:var(--gold2);margin-left:auto;white-space:nowrap}
+.blk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:11px}
+.blk-slot{padding:7px 3px;border:1px solid var(--border);border-radius:3px;text-align:center;font-size:.66rem;cursor:pointer;transition:all .15s;color:var(--text2)}
+.blk-slot:hover{border-color:var(--error);color:var(--error)}
+.blk-slot.blocked{background:rgba(192,80,74,.1);border-color:var(--error);color:var(--error)}
+.adm-fab{position:fixed;bottom:20px;right:16px;z-index:200;width:44px;height:44px;border-radius:50%;background:var(--surface2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;color:var(--text2);transition:all .2s;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.adm-fab:hover{border-color:var(--gold);color:var(--gold)}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+@media(min-width:560px){.time-grid,.blk-grid{grid-template-columns:repeat(6,1fr)}}
+@media(max-width:360px){.form-row{grid-template-columns:1fr}}
+
+/* NOMINATION */
+.nom-option{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all .2s;margin-bottom:8px;background:var(--bg)}
+.nom-option:hover{border-color:var(--gold)}
+.nom-option.selected{border-color:var(--gold);background:rgba(184,150,90,.06)}
+.nom-icon{width:44px;height:44px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--text3);flex-shrink:0}
+.nom-name{font-size:.8rem;margin-bottom:2px}
+.nom-sub{font-size:.63rem;color:var(--text3);line-height:1.5}
+.nom-check{width:18px;height:18px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--gold);flex-shrink:0;transition:all .2s}
+.nom-option.selected .nom-check::after{content:'✓'}
+.staff-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:4px}
+.staff-card{border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all .2s;overflow:hidden;background:var(--bg)}
+.staff-card:hover{border-color:var(--gold)}
+.staff-card.selected{border-color:var(--gold);background:rgba(184,150,90,.06)}
+.staff-photo{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--surface2)}
+.staff-photo-ph{width:100%;aspect-ratio:1;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--text3)}
+.staff-info{padding:9px 10px}
+.staff-name{font-size:.76rem;margin-bottom:2px}
+.staff-role{font-size:.6rem;color:var(--text3);margin-bottom:4px}
+.staff-fee{font-size:.66rem;color:var(--gold2)}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">UENO <span>ZEN</span></div>
+  <div class="lang-sw">
+    <button class="lang-btn active" onclick="setLang('ja')">日</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('zh')">中</button>
+    <button class="lang-btn" onclick="setLang('es')">ES</button>
+    <button class="lang-btn" onclick="setLang('fr')">FR</button>
+    <button class="lang-btn" onclick="setLang('de')">DE</button>
+    <button class="lang-btn" onclick="setLang('hi')">हि</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="page active" id="page-hero">
+  <div class="hero">
+    <span class="hero-badge">Tokyo · 東京 · Ueno</span>
+    <h1>Ueno <em>Zen</em><br>Massage</h1>
+    <span class="hero-sub" id="hero-sub">上野・浅草エリア出張マッサージ</span>
+    <button class="hero-cta" onclick="startBooking()"><span id="hero-cta-txt">ご予約はこちら</span> →</button>
+    <div class="social-row">
+      <a href="https://instagram.com/YOUR_HANDLE" target="_blank" class="s-pill">📸 Instagram</a>
+      <a href="https://threads.net/@YOUR_HANDLE" target="_blank" class="s-pill">🧵 Threads</a>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 1: MENU -->
+<div class="page" id="page-menu">
+  <div class="prog-wrap" id="prog-menu"></div>
+  <div class="sec-card">
+    <div class="sec-head"><span class="sec-num">01</span><span class="sec-title" id="t-menu-title">メニュー選択</span></div>
+    <div class="sec-body">
+      <p style="font-size:.68rem;color:var(--text3);margin-bottom:13px" id="t-menu-hint">番号で回答してください</p>
+      <div class="outcall-box" id="t-outcall">※ 全メニュー共通：出張費 ¥2,200 が追加されます。</div>
+      <!-- Oil -->
+      <div class="menu-cat">
+        <div class="menu-cat-hd"><span id="t-cat1">1. オイルマッサージ</span><span class="menu-cat-en">Oil Massage</span></div>
+        <div class="menu-item" onclick="selectMenu(this,1,60,13000,'Oil Massage','オイルマッサージ')"><div class="m-num">1</div><div class="m-info"><div class="m-dur">60 min</div><div class="m-price"><sup>¥</sup>13,000</div></div></div>
+        <div class="menu-item" onclick="selectMenu(this,2,90,17000,'Oil Massage','オイルマッサージ')"><div class="m-num">2</div><div class="m-info"><div class="m-dur">90 min</div><div class="m-price"><sup>¥</sup>17,000</div></div></div>
+        <div class="menu-item" onclick="selectMenu(this,3,120,22000,'Oil Massage','オイルマッサージ')"><div class="m-num">3</div><div class="m-info"><div class="m-dur">120 min</div><div class="m-price"><sup>¥</sup>22,000</div></div></div>
+      </div>
+      <!-- Full Body -->
+      <div class="menu-cat">
+        <div class="menu-cat-hd"><span id="t-cat2">2. 全身マッサージ</span><span class="menu-cat-en">Full Body</span></div>
+        <div class="menu-item" onclick="selectMenu(this,4,60,9900,'Full Body Massage','全身マッサージ')"><div class="m-num">4</div><div class="m-info"><div class="m-dur">60 min</div><div class="m-price"><sup>¥</sup>9,900</div></div></div>
+        <div class="menu-item" onclick="selectMenu(this,5,90,12000,'Full Body Massage','全身マッサージ')"><div class="m-num">5</div><div class="m-info"><div class="m-dur">90 min</div><div class="m-price"><sup>¥</sup>12,000</div></div></div>
+        <div class="menu-item" onclick="selectMenu(this,6,120,15000,'Full Body Massage','全身マッサージ')"><div class="m-num">6</div><div class="m-info"><div class="m-dur">120 min</div><div class="m-price"><sup>¥</sup>15,000</div></div></div>
+      </div>
+      <!-- Facial -->
+      <div class="menu-cat">
+        <div class="menu-cat-hd"><span id="t-cat3">3. フェイシャルスリミング</span><span class="menu-cat-en">Facial Slimming</span></div>
+        <div class="menu-item" onclick="selectMenu(this,7,60,8800,'Facial Slimming','フェイシャルスリミング')"><div class="m-num">7</div><div class="m-info"><div class="m-dur">60 min</div><div class="m-price"><sup>¥</sup>8,800</div></div></div>
+        <div class="menu-item" onclick="selectMenu(this,8,90,10500,'Facial Slimming','フェイシャルスリミング')"><div class="m-num">8</div><div class="m-info"><div class="m-dur">90 min</div><div class="m-price"><sup>¥</sup>10,500</div></div></div>
+        <div class="menu-item" onclick="selectMenu(this,9,120,13000,'Facial Slimming','フェイシャルスリミング')"><div class="m-num">9</div><div class="m-info"><div class="m-dur">120 min</div><div class="m-price"><sup>¥</sup>13,000</div></div></div>
+      </div>
+      <!-- Foot -->
+      <div class="menu-cat" style="margin-bottom:0">
+        <div class="menu-cat-hd"><span id="t-cat4">4. フットマッサージ</span><span class="menu-cat-en">Foot Massage</span></div>
+        <div class="menu-item" onclick="selectMenu(this,10,60,8800,'Foot Massage','フットマッサージ')"><div class="m-num">10</div><div class="m-info"><div class="m-dur">60 min</div><div class="m-price"><sup>¥</sup>8,800</div></div></div>
+        <div class="menu-item" onclick="selectMenu(this,11,90,10500,'Foot Massage','フットマッサージ')"><div class="m-num">11</div><div class="m-info"><div class="m-dur">90 min</div><div class="m-price"><sup>¥</sup>10,500</div></div></div>
+        <div class="menu-item" onclick="selectMenu(this,12,120,13000,'Foot Massage','フットマッサージ')"><div class="m-num">12</div><div class="m-info"><div class="m-dur">120 min</div><div class="m-price"><sup>¥</sup>13,000</div></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="btn-wrap">
+    <button class="btn-p" id="btn-menu" disabled onclick="goStep('nomination')"><span id="t-btn-menu">日程を選択する</span> →</button>
+  </div>
+</div>
+
+<!-- STEP 2: NOMINATION (指名) -->
+<div class="page" id="page-nomination">
+  <div class="prog-wrap" id="prog-nomination"></div>
+  <div class="sec-card">
+    <div class="sec-head"><span class="sec-num">02</span><span class="sec-title" id="t-nom-title">スタッフ指名</span></div>
+    <div class="sec-body">
+      <p style="font-size:.68rem;color:var(--text3);margin-bottom:13px" id="t-nom-hint">ご希望のスタッフを指名できます（任意）</p>
+      <div class="nom-option" id="nom-no" onclick="skipNomination()">
+        <div class="nom-icon">✦</div>
+        <div style="flex:1">
+          <div class="nom-name" id="t-nom-skip">指名しない</div>
+          <div class="nom-sub" id="t-nom-skip-sub">空いているスタッフが担当します • 指名料なし</div>
+        </div>
+        <div class="nom-check"></div>
+      </div>
+      <div id="staff-loading" style="text-align:center;padding:20px;font-size:.72rem;color:var(--text3)">読み込み中...</div>
+      <div id="staff-grid" class="staff-grid" style="display:none"></div>
+    </div>
+  </div>
+  <div class="btn-wrap">
+    <button class="btn-p" id="btn-nom" disabled onclick="goStep('datetime')"><span id="t-btn-nom">日程を選択する</span> →</button>
+    <button class="btn-s" onclick="goStep('menu')">← <span id="t-back-nom">戻る</span></button>
+  </div>
+</div>
+
+<!-- STEP 3: DATE & TIME -->
+<div class="page" id="page-datetime">
+  <div class="prog-wrap" id="prog-datetime"></div>
+  <div class="sec-card">
+    <div class="sec-head"><span class="sec-num">02</span><span class="sec-title" id="t-dt-title">日程・時間選択</span></div>
+    <div class="sec-body">
+      <div class="notice-bar" id="menu-display"></div>
+      <div class="cal-nav">
+        <button onclick="changeMonth(-1)">‹</button>
+        <div class="cal-month" id="cal-month"></div>
+        <button onclick="changeMonth(1)">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div id="time-section" style="display:none;margin-top:16px">
+        <div class="divider"></div>
+        <p style="font-size:.64rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px" id="t-time-hint">時間帯を選択</p>
+        <div class="time-grid" id="time-grid"></div>
+        <p style="font-size:.6rem;color:var(--text3);margin-top:7px" id="t-time-legend">× 予約済み　― 4時間以内</p>
+      </div>
+    </div>
+  </div>
+  <div class="btn-wrap">
+    <button class="btn-p" id="btn-dt" disabled onclick="goStep('location')"><span id="t-btn-dt">場所を選択する</span> →</button>
+    <button class="btn-s" onclick="goStep('nomination')">← <span id="t-back1">戻る</span></button>
+  </div>
+</div>
+
+<!-- STEP 3: LOCATION -->
+<div class="page" id="page-location">
+  <div class="prog-wrap" id="prog-location"></div>
+  <div class="sec-card">
+    <div class="sec-head"><span class="sec-num">03</span><span class="sec-title" id="t-loc-title">場所選択</span></div>
+    <div class="sec-body">
+      <!-- Hotel -->
+      <div class="loc-opt" id="loc1" onclick="selectLoc(1)">
+        <div class="loc-radio"></div>
+        <div><div class="loc-name" id="t-loc1-name">上野・浅草エリアのホテル</div><div class="loc-sub">Ueno / Asakusa Area Hotel</div></div>
+      </div>
+      <div class="loc-fields" id="lf1">
+        <div class="form-row">
+          <div class="fg"><label class="fl" id="t-hotel-lbl">ホテル名 *</label><input class="fi" id="hotel-name" oninput="valLoc()"></div>
+          <div class="fg"><label class="fl" id="t-room-lbl">部屋番号 *</label><input class="fi" id="room-num" oninput="valLoc()"></div>
+        </div>
+      </div>
+      <!-- Home -->
+      <div class="loc-opt" id="loc2" onclick="selectLoc(2)">
+        <div class="loc-radio"></div>
+        <div>
+          <div class="loc-name" id="t-loc2-name">ご自宅への訪問</div>
+          <div class="loc-sub">Home Visit</div>
+          <div class="loc-extra" id="t-loc2-extra">※ 台東区外は別途 ¥3,000 追加</div>
+        </div>
+      </div>
+      <div class="loc-fields" id="lf2">
+        <div class="fg"><label class="fl" id="t-addr-lbl">ご住所 *</label><input class="fi" id="home-addr" oninput="valLoc()"></div>
+        <div class="fg">
+          <label class="fl" id="t-room2-lbl">部屋番号（マンション・アパートの場合は必須）</label>
+          <input class="fi" id="room-num2" placeholder="例: 301" oninput="valLoc()">
+          <p class="warn" id="t-room2-warn">部屋番号の記載漏れにご注意ください。</p>
+        </div>
+      </div>
+      <!-- Salon -->
+      <div class="loc-opt" id="loc3" onclick="selectLoc(3)">
+        <div class="loc-radio"></div>
+        <div><div class="loc-name" id="t-loc3-name">上野レンタルサロン（完全個室）</div><div class="loc-sub">Near Ueno / Okachimachi Station</div></div>
+      </div>
+      <div class="loc-fields" id="lf3">
+        <div class="loc-note" id="t-salon-note">予約完了後、施術場所の住所をご案内いたします。場所は上野駅・御徒町駅から近いレンタルサロンになります。</div>
+        <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=台東区上野4-8-6+プラザUビル3階" target="_blank">
+          📍 <span id="t-map-link">Google マップで確認する</span>
+        </a>
+        <!-- Salon preview (luxury interior visualization) -->
+        <div class="salon-preview">
+          <div style="width:100%;height:160px;background:linear-gradient(135deg,#1a1410 0%,#2a1f14 40%,#1a1410 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(184,150,90,.03) 0,rgba(184,150,90,.03) 1px,transparent 0,transparent 50%);background-size:20px 20px"></div>
+            <div style="text-align:center;position:relative;z-index:1">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;color:rgba(184,150,90,.3);letter-spacing:.3em">禅</div>
+              <div style="font-size:.6rem;color:rgba(184,150,90,.5);letter-spacing:.3em;text-transform:uppercase;margin-top:6px">Ueno Rental Salon</div>
+            </div>
+          </div>
+          <div class="salon-preview-body">
+            <div class="salon-preview-name" id="t-salon-name">上野レンタルサロン</div>
+            <div class="salon-preview-addr">〒110-0005 東京都台東区上野4-8-6<br>プラザUビル 3階 / Plaza U Bldg. 3F<br>上野駅・御徒町駅 徒歩3分</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="btn-wrap">
+    <button class="btn-p" id="btn-loc" disabled onclick="goStep('customer')"><span id="t-btn-loc">お客様情報へ</span> →</button>
+    <button class="btn-s" onclick="goStep('datetime')">← <span id="t-back2">戻る</span></button>
+  </div>
+</div>
+
+<!-- STEP 4: CUSTOMER INFO (moved up) -->
+<div class="page" id="page-customer">
+  <div class="prog-wrap" id="prog-customer"></div>
+  <div class="sec-card">
+    <div class="sec-head"><span class="sec-num">04</span><span class="sec-title" id="t-cust-title">お客様情報</span></div>
+    <div class="sec-body">
+      <div class="form-row">
+        <div class="fg"><label class="fl" id="t-last-lbl">姓 *</label><input class="fi" id="c-last" oninput="valCust()"></div>
+        <div class="fg"><label class="fl" id="t-first-lbl">名 *</label><input class="fi" id="c-first" oninput="valCust()"></div>
+      </div>
+      <div class="fg"><label class="fl" id="t-email-lbl">メールアドレス *</label><input class="fi" id="c-email" type="email" placeholder="example@email.com" oninput="valCust()"></div>
+      <div class="fg"><label class="fl" id="t-phone-lbl">電話番号 *</label><input class="fi" id="c-phone" type="tel" placeholder="+81 90 0000 0000" oninput="valCust()"></div>
+      <div class="fg">
+        <label class="fl" id="t-social-lbl">Instagram / Threads ID（必須）</label>
+        <input class="fi" id="c-social" placeholder="@your_handle" oninput="valCust()">
+        <p class="hint" id="t-social-hint">予約にはフォローが必要です</p>
+      </div>
+      <div class="fg"><label class="fl" id="t-notes-lbl">ご要望（任意）</label><textarea class="fi" id="c-notes" rows="3"></textarea></div>
+    </div>
+  </div>
+  <div class="btn-wrap">
+    <button class="btn-p" id="btn-cust" disabled onclick="goStep('payment')"><span id="t-btn-cust">支払い情報へ</span> →</button>
+    <button class="btn-s" onclick="goStep('location')">← <span id="t-back3">戻る</span></button>
+  </div>
+</div>
+
+<!-- STEP 5: PAYMENT + TERMS (combined) -->
+<div class="page" id="page-payment">
+  <div class="prog-wrap" id="prog-payment"></div>
+  <div class="sec-card">
+    <div class="sec-head"><span class="sec-num">05</span><span class="sec-title" id="t-pay-title">支払い情報・利用規約</span></div>
+    <div class="sec-body">
+      <div class="pay-opt" id="pay-card" onclick="selectPay('card')">
+        <div class="pay-radio"></div>
+        <div class="pay-icon">💳</div>
+        <div>
+          <div class="pay-name" id="t-pay-card-name">クレジットカード決済</div>
+          <div class="pay-desc" id="t-pay-card-desc">VISA / Mastercard / AMEX / JCB 対応</div>
+        </div>
+      </div>
+      <div id="stripe-section" style="display:none;margin-bottom:10px">
+        <div class="brands">
+          <span class="brand brand-v">VISA</span>
+          <span class="brand brand-m">Mastercard</span>
+          <span class="brand brand-a">AMEX</span>
+          <span class="brand brand-j">JCB</span>
+        </div>
+        <div class="stripe-wrap" id="stripe-wrap"><div id="stripe-card-element"></div></div>
+        <div class="card-err" id="card-err"></div>
+      </div>
+      <div class="pay-opt" id="pay-cash" onclick="selectPay('cash')">
+        <div class="pay-radio"></div>
+        <div class="pay-icon">💴</div>
+        <div>
+          <div class="pay-name" id="t-pay-cash-name">施術前現金払い</div>
+          <div class="pay-desc" id="t-pay-cash-desc">施術開始前にお支払いください</div>
+        </div>
+      </div>
+      <div class="notice-bar" style="margin-top:12px" id="t-pay-notice">前払い完了後、施術を開始いたします。</div>
+
+      <!-- TERMS (placed under payment) -->
+      <div class="divider"></div>
+      <p style="font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px" id="t-terms-lbl">利用規約</p>
+      <div class="terms-box">
+        <p>・当サービスは本フォームからのご予約のみ受け付けております。SNSのDM・個別連絡でのご予約はお受けしておりません。</p>
+        <p>・InstagramまたはThreadsのフォローが必要です。</p>
+        <p>・無断キャンセルはできません。</p>
+        <p>・当日及び無断キャンセルされた方は、今後のご予約受付をお断りいたします。</p>
+        <p>・当日連絡が取れない場合、予約は無効となる場合があります。</p>
+        <p>・当店は正規のマッサージ施術のみを提供しております。</p>
+        <p>・当日予約は空き枠がない場合がございますので、1日前までのご予約を推奨しております。</p>
+        <p>・スタッフに対する不適切行為があった場合、施術を中止し返金不可とします。必要に応じて法的措置を講じます。</p>
+        <p class="ten">Appointments accepted through this form only. No DMs. Following Instagram or Threads required. No-shows prohibited. Same-day bookings may be unavailable. Legitimate services only. Misconduct = termination without refund; legal action may follow.</p>
+      </div>
+      <div class="terms-chk" id="terms-chk" onclick="toggleTerms()">
+        <div class="chk-box" id="chk-box"></div>
+        <div class="chk-txt"><span id="t-terms-agree">利用規約に同意します</span><small id="t-terms-agree-en">I agree to the Terms & Conditions</small></div>
+      </div>
+    </div>
+  </div>
+  <div class="btn-wrap">
+    <button class="btn-p" id="btn-pay" disabled onclick="goStep('confirm')"><span id="t-btn-pay">予約内容を確認する</span> →</button>
+    <button class="btn-s" onclick="goStep('customer')">← <span id="t-back4">戻る</span></button>
+  </div>
+</div>
+
+<!-- STEP 6: CONFIRM -->
+<div class="page" id="page-confirm">
+  <div class="prog-wrap" id="prog-confirm"></div>
+  <div class="sec-card">
+    <div class="sec-head"><span class="sec-num">06</span><span class="sec-title" id="t-conf-title">予約内容確認</span></div>
+    <div class="sec-body">
+      <div id="conf-table"></div>
+      <div class="conf-total">
+        <div class="conf-total-lbl" id="t-total-lbl">お支払い合計</div>
+        <div class="conf-total-amt" id="conf-amt"></div>
+        <div class="conf-total-bd" id="conf-bd"></div>
+      </div>
+      <div class="outcall-box" style="margin-top:12px" id="t-conf-outcall">※ 全メニュー共通：出張費 ¥2,200 が含まれています。</div>
+    </div>
+  </div>
+  <div class="btn-wrap">
+    <button class="btn-p" id="btn-submit" onclick="submitRes()">
+      <div class="spin" id="spin"></div>
+      <span id="t-btn-submit">予約を確定する 🔒</span>
+    </button>
+    <button class="btn-s" onclick="goStep('payment')">← <span id="t-back5">戻る</span></button>
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="page" id="page-success">
+  <div class="succ-wrap">
+    <div class="succ-icon">✓</div>
+    <div class="succ-title" id="t-succ-title">ご予約完了</div>
+    <p class="succ-msg" id="t-succ-msg">内容確認後、詳細をご案内いたします。</p>
+    <p class="succ-msg" style="font-family:'Noto Serif JP',serif;font-size:.74rem;color:var(--text3)" id="t-succ-thanks">ご予約ありがとうございます。</p>
+    <div class="succ-divider"></div>
+    <div class="sec-card" style="margin:0 0 14px;text-align:left">
+      <div class="sec-body">
+        <div class="succ-ref" id="t-succ-ref">予約番号</div>
+        <div class="succ-id" id="succ-id"></div>
+      </div>
+    </div>
+    <!-- Notification sent list -->
+    <div class="notif-list">
+      <div class="notif-item">
+        <span class="notif-icon">📧</span>
+        <div><strong id="t-notif-email">メール確認を送信しました</strong><span style="font-size:.66rem" id="succ-email-addr"></span></div>
+      </div>
+      <div class="notif-item">
+        <span class="notif-icon">📸</span>
+        <div><strong id="t-notif-ig">Instagram リマインダー</strong><span style="font-size:.66rem;color:var(--text3)" id="t-notif-ig-desc">予約24時間前にInstagramよりご連絡します</span></div>
+      </div>
+      <div class="notif-item">
+        <span class="notif-icon">🧵</span>
+        <div><strong id="t-notif-th">Threads リマインダー</strong><span style="font-size:.66rem;color:var(--text3)" id="t-notif-th-desc">予約24時間前にThreadsよりご連絡します</span></div>
+      </div>
+      <div class="notif-item">
+        <span class="notif-icon">🔔</span>
+        <div><strong id="t-notif-admin">管理者通知</strong><span style="font-size:.66rem;color:var(--text3)" id="t-notif-admin-desc">管理者に予約詳細を通知しました</span></div>
+      </div>
+    </div>
+    <div id="succ-summary"></div>
+    <div class="social-row" style="margin-top:18px">
+      <a href="https://instagram.com/YOUR_HANDLE" target="_blank" class="s-pill">📸 Instagram</a>
+      <a href="https://threads.net/@YOUR_HANDLE" target="_blank" class="s-pill">🧵 Threads</a>
+    </div>
+    <button class="btn-s" style="margin-top:16px" onclick="goPage('page-hero')"><span id="t-back-top">トップへ戻る</span></button>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="page" id="page-admin">
+  <div class="adm-hd">
+    <div><span class="adm-title">管理画面</span><span class="adm-tag">ADMIN</span></div>
+    <button class="btn-s" style="width:auto;padding:5px 11px;font-size:.62rem" onclick="goPage('page-hero')">← サイトへ</button>
+  </div>
+  <div class="adm-tabs">
+    <button class="adm-tab active" onclick="admTab('overview')">Overview</button>
+    <button class="adm-tab" onclick="admTab('reservations')">予約一覧</button>
+    <button class="adm-tab" onclick="admTab('block')">ブロック</button>
+  </div>
+  <div class="adm-panel active" id="panel-overview">
+    <div class="adm-content">
+      <div class="stats">
+        <div class="stat-c"><div class="stat-n" id="s-total">0</div><div class="stat-l">Total</div></div>
+        <div class="stat-c"><div class="stat-n" id="s-today">0</div><div class="stat-l">Today</div></div>
+        <div class="stat-c"><div class="stat-n" id="s-rev">¥0</div><div class="stat-l">Revenue</div></div>
+        <div class="stat-c"><div class="stat-n" id="s-pend">0</div><div class="stat-l">Pending</div></div>
+      </div>
+      <p style="font-size:.66rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px">最近の予約</p>
+      <div id="adm-recent"></div>
+    </div>
+  </div>
+  <div class="adm-panel" id="panel-reservations"><div class="adm-content"><div id="adm-all"></div></div></div>
+  <div class="adm-panel" id="panel-block">
+    <div class="adm-content">
+      <p style="font-size:.74rem;color:var(--text2);margin-bottom:12px">スロットをタップしてブロック・解除</p>
+      <div class="fg"><label class="fl">日付</label><input type="date" class="fi" id="blk-date" onchange="renderBlk()"></div>
+      <div class="blk-grid" id="blk-grid"></div>
+      <button class="btn-p" style="margin-top:12px;max-width:170px" onclick="saveBlk()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<div class="adm-fab" onclick="goPage('page-admin')">⚙</div>
+
+<script>
+// ══════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════
+const STRIPE_KEY  = 'pk_live_51RQnjKCihnQcHMQj1ziOhFOi3QmonAsHY7ddNRjVaxCq883GfGCgYZyQcLWZw7P0BMj4ppZoYG8p1AWhbxcV03Yx00YR08whGN';
+const OWNER_EMAIL = 'owner@example.com';                 // ← 管理者メール
+const IG_HANDLE   = '@YOUR_IG_HANDLE';                   // ← Instagramハンドル
+const TH_HANDLE   = '@YOUR_TH_HANDLE';                   // ← Threadsハンドル
+const OUTCALL_FEE = 2200;
+const CUTOFF_HOURS = 4; // 施術開始の何時間前まで受付
+
+// ══════════════════════════════════════
+//  SUPABASE
+// ══════════════════════════════════════
+const SUPABASE_URL      = 'https://icxsapzdbwjzttftjkeg.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljeHNhcHpkYndqenR0ZnRqa2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNDY4MjAsImV4cCI6MjA5NDgyMjgyMH0.KbIayYtKQCxBUCOIe6wSu7dhl7JjuFM3H1C_MFpL97E';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ══════════════════════════════════════
+//  TRANSLATIONS
+// ══════════════════════════════════════
+const T = {
+  ja:{
+    heroSub:'上野・浅草エリア出張マッサージ', heroCta:'ご予約はこちら',
+    menuTitle:'メニュー選択', menuHint:'番号で回答してください',
+    outcall:'※ 全メニュー共通：出張費 ¥2,200 が追加されます。',
+    cat1:'1. オイルマッサージ', cat2:'2. 全身マッサージ', cat3:'3. フェイシャルスリミング', cat4:'4. フットマッサージ',
+    btnMenu:'日程を選択する',
+    dtTitle:'日程・時間選択', timeHint:'時間帯を選択', timeLegend:'× 予約済み　― 4時間以内',
+    btnDt:'場所を選択する', back:'戻る',
+    locTitle:'場所選択',
+    loc1:'上野・浅草エリアのホテル', loc2:'ご自宅への訪問', loc3:'上野レンタルサロン（完全個室）',
+    loc2extra:'※ 台東区外は別途 ¥3,000 追加',
+    hotelLbl:'ホテル名 *', roomLbl:'部屋番号 *', addrLbl:'ご住所 *',
+    room2Lbl:'部屋番号（マンション・アパートの場合は必須）', room2Warn:'部屋番号の記載漏れにご注意ください。',
+    salonNote:'予約完了後、施術場所の住所をご案内いたします。場所は上野駅・御徒町駅から近いレンタルサロンになります。',
+    mapLink:'Google マップで確認する', salonName:'上野レンタルサロン',
+    btnLoc:'お客様情報へ',
+    custTitle:'お客様情報', lastLbl:'姓 *', firstLbl:'名 *',
+    emailLbl:'メールアドレス *', phoneLbl:'電話番号 *',
+    socialLbl:'Instagram / Threads ID（必須）', socialHint:'予約にはフォローが必要です',
+    notesLbl:'ご要望（任意）', btnCust:'支払い情報へ',
+    payTitle:'支払い情報・利用規約',
+    payCardName:'クレジットカード決済', payCardDesc:'VISA / Mastercard / AMEX / JCB 対応',
+    payCashName:'施術前現金払い', payCashDesc:'施術開始前にお支払いください',
+    payNotice:'前払い完了後、施術を開始いたします。',
+    termsLbl:'利用規約', termsAgree:'利用規約に同意します', termsAgreeEn:'I agree to the Terms & Conditions',
+    btnPay:'予約内容を確認する',
+    confTitle:'予約内容確認', totalLbl:'お支払い合計',
+    confOutcall:'※ 全メニュー共通：出張費 ¥2,200 が含まれています。',
+    btnSubmit:'予約を確定する 🔒',
+    succTitle:'ご予約完了', succMsg:'内容確認後、詳細をご案内いたします。', succThanks:'ご予約ありがとうございます。',
+    succRef:'予約番号',
+    notifEmail:'メール確認を送信しました',
+    notifIg:'Instagram リマインダー', notifIgDesc:'予約24時間前にInstagramよりご連絡します',
+    notifTh:'Threads リマインダー', notifThDesc:'予約24時間前にThreadsよりご連絡します',
+    notifAdmin:'管理者通知', notifAdminDesc:'管理者に予約詳細を通知しました',
+    backTop:'トップへ戻る',
+    nomTitle:'スタッフ指名', nomHint:'ご希望のスタッフを指名できます（任意）',
+    nomSkip:'指名しない', nomSkipSub:'空いているスタッフが担当します • 指名料なし',
+    progLabels:['メニュー','指名','日程','場所','情報','支払','確認'],
+    keyMenu:'メニュー', keyDate:'日時', keyLoc:'場所', keyPay:'支払', keyName:'お名前', keyEmail:'Email', keyPhone:'電話', keySocial:'SNS', keyStaff:'担当スタッフ',
+  },
+  en:{
+    heroSub:'Mobile Massage · Ueno / Asakusa Area', heroCta:'Book Now',
+    menuTitle:'Select Menu', menuHint:'Please select a menu item',
+    outcall:'※ All services include an additional outcall fee of ¥2,200.',
+    cat1:'1. Oil Massage', cat2:'2. Full Body Massage', cat3:'3. Facial Slimming', cat4:'4. Foot Massage',
+    btnMenu:'Select Date & Time',
+    dtTitle:'Date & Time', timeHint:'Select Time', timeLegend:'× Booked   ― Within 4h',
+    btnDt:'Select Location', back:'Back',
+    locTitle:'Location',
+    loc1:'Ueno / Asakusa Area Hotel', loc2:'Home Visit', loc3:'Ueno Rental Salon (Private)',
+    loc2extra:'※ ¥3,000 extra outside Taito City',
+    hotelLbl:'Hotel Name *', roomLbl:'Room No. *', addrLbl:'Home Address *',
+    room2Lbl:'Room No. (Required for apt/condo)', room2Warn:'Please do not forget your room number.',
+    salonNote:'After booking, we will send you the treatment room address. Conveniently located near Ueno & Okachimachi Station.',
+    mapLink:'View on Google Maps', salonName:'Ueno Rental Salon',
+    btnLoc:'Customer Information',
+    custTitle:'Customer Info', lastLbl:'Last Name *', firstLbl:'First Name *',
+    emailLbl:'Email Address *', phoneLbl:'Phone Number *',
+    socialLbl:'Instagram / Threads ID (Required)', socialHint:'Following our account is required',
+    notesLbl:'Special Requests (Optional)', btnCust:'Payment Information',
+    payTitle:'Payment & Terms',
+    payCardName:'Credit Card', payCardDesc:'VISA / Mastercard / AMEX / JCB',
+    payCashName:'Cash Before Treatment', payCashDesc:'Please pay before treatment begins',
+    payNotice:'Once payment is completed, we will proceed with treatment.',
+    termsLbl:'Terms & Conditions', termsAgree:'I agree to the Terms & Conditions', termsAgreeEn:'利用規約に同意します',
+    btnPay:'Review Reservation',
+    confTitle:'Confirm Reservation', totalLbl:'Total',
+    confOutcall:'※ Outcall fee of ¥2,200 is included in the total.',
+    btnSubmit:'Confirm & Pay 🔒',
+    succTitle:'Reservation Complete', succMsg:'We will contact you shortly with further details.', succThanks:'Thank you for your reservation.',
+    succRef:'Reservation ID',
+    notifEmail:'Confirmation email sent',
+    notifIg:'Instagram Reminder', notifIgDesc:'We will contact you via Instagram 24h before your appointment',
+    notifTh:'Threads Reminder', notifThDesc:'We will contact you via Threads 24h before your appointment',
+    notifAdmin:'Admin Notified', notifAdminDesc:'Booking details sent to admin',
+    backTop:'Back to Top',
+    nomTitle:'Staff Nomination', nomHint:'You can nominate a preferred staff member (optional)',
+    nomSkip:'No Preference', nomSkipSub:'Any available staff will assist you • No nomination fee',
+    progLabels:['Menu','Staff','Date','Location','Info','Payment','Confirm'],
+    keyMenu:'Menu', keyDate:'Date', keyLoc:'Location', keyPay:'Payment', keyName:'Name', keyEmail:'Email', keyPhone:'Phone', keySocial:'SNS', keyStaff:'Staff',
+  },
+  zh:{
+    heroSub:'上野·浅草地区上门按摩', heroCta:'立即预约',
+    menuTitle:'选择菜单', menuHint:'请选择服务项目',
+    outcall:'※ 所有服务均需额外收取 ¥2,200 的上门费。',
+    cat1:'1. 精油按摩', cat2:'2. 全身按摩', cat3:'3. 面部纤体', cat4:'4. 足部按摩',
+    btnMenu:'选择日期和时间',
+    dtTitle:'日期和时间', timeHint:'选择时间段', timeLegend:'× 已预约   ― 4小时内',
+    btnDt:'选择地点', back:'返回',
+    locTitle:'选择地点',
+    loc1:'上野·浅草地区酒店', loc2:'上门到家', loc3:'上野租赁沙龙（完全私人）',
+    loc2extra:'※ 台东区以外需额外收取 ¥3,000',
+    hotelLbl:'酒店名称 *', roomLbl:'房间号 *', addrLbl:'家庭住址 *',
+    room2Lbl:'房间号（公寓必填）', room2Warn:'请注意不要遗漏房间号。',
+    salonNote:'预约完成后，我们将告知您治疗室地址。沙龙位于上野站和御徒町站附近。',
+    mapLink:'在 Google 地图查看', salonName:'上野租赁沙龙',
+    btnLoc:'填写客户信息',
+    custTitle:'客户信息', lastLbl:'姓 *', firstLbl:'名 *',
+    emailLbl:'电子邮件 *', phoneLbl:'电话号码 *',
+    socialLbl:'Instagram / Threads ID（必填）', socialHint:'需要关注我们的账号',
+    notesLbl:'特殊要求（选填）', btnCust:'支付信息',
+    payTitle:'支付与条款',
+    payCardName:'信用卡支付', payCardDesc:'支持 VISA / Mastercard / AMEX / JCB',
+    payCashName:'治疗前现金支付', payCashDesc:'请在治疗开始前支付',
+    payNotice:'完成预付款后，我们将开始治疗。',
+    termsLbl:'服务条款', termsAgree:'我同意服务条款', termsAgreeEn:'I agree to the Terms & Conditions',
+    btnPay:'确认预约',
+    confTitle:'确认预约', totalLbl:'总计',
+    confOutcall:'※ 总价中已包含 ¥2,200 的上门费。',
+    btnSubmit:'确认并支付 🔒',
+    succTitle:'预约完成', succMsg:'确认内容后，我们将与您联系。', succThanks:'感谢您的预约。',
+    succRef:'预约编号',
+    notifEmail:'确认邮件已发送',
+    notifIg:'Instagram 提醒', notifIgDesc:'我们将在预约前24小时通过Instagram联系您',
+    notifTh:'Threads 提醒', notifThDesc:'我们将在预约前24小时通过Threads联系您',
+    notifAdmin:'已通知管理员', notifAdminDesc:'预约详情已发送给管理员',
+    backTop:'返回顶部',
+    nomTitle:'指定员工', nomHint:'您可以指定您喜欢的员工（可选）',
+    nomSkip:'不指定', nomSkipSub:'将由可用员工为您服务 • 无指定费用',
+    progLabels:['菜单','指定','日期','地点','信息','支付','确认'],
+    keyMenu:'菜单', keyDate:'日期', keyLoc:'地点', keyPay:'支付', keyName:'姓名', keyEmail:'邮箱', keyPhone:'电话', keySocial:'SNS', keyStaff:'员工',
+  },
+  es:{
+    heroSub:'Masaje a domicilio · Área Ueno / Asakusa', heroCta:'Reservar Ahora',
+    menuTitle:'Seleccionar Menú', menuHint:'Por favor seleccione un servicio',
+    outcall:'※ Todos los servicios incluyen un cargo adicional de ¥2,200 por desplazamiento.',
+    cat1:'1. Masaje con Aceite', cat2:'2. Masaje Cuerpo Completo', cat3:'3. Masaje Facial Reafirmante', cat4:'4. Masaje de Pies',
+    btnMenu:'Seleccionar Fecha y Hora',
+    dtTitle:'Fecha y Hora', timeHint:'Seleccionar Horario', timeLegend:'× Reservado   ― Dentro de 4h',
+    btnDt:'Seleccionar Ubicación', back:'Atrás',
+    locTitle:'Ubicación',
+    loc1:'Hotel en Área Ueno / Asakusa', loc2:'Visita a Domicilio', loc3:'Salón de Alquiler Ueno (Privado)',
+    loc2extra:'※ ¥3,000 adicionales fuera de Taito City',
+    hotelLbl:'Nombre del Hotel *', roomLbl:'Número de Habitación *', addrLbl:'Dirección *',
+    room2Lbl:'N° de habitación (obligatorio para apartamentos)', room2Warn:'Por favor no olvide el número de habitación.',
+    salonNote:'Tras confirmar la reserva, le enviaremos la dirección del salón. Está convenientemente ubicado cerca de la estación Ueno y Okachimachi.',
+    mapLink:'Ver en Google Maps', salonName:'Salón de Alquiler Ueno',
+    btnLoc:'Información del Cliente',
+    custTitle:'Información del Cliente', lastLbl:'Apellido *', firstLbl:'Nombre *',
+    emailLbl:'Correo Electrónico *', phoneLbl:'Teléfono *',
+    socialLbl:'Instagram / Threads ID (Obligatorio)', socialHint:'Debe seguir nuestra cuenta',
+    notesLbl:'Solicitudes Especiales (Opcional)', btnCust:'Información de Pago',
+    payTitle:'Pago y Términos',
+    payCardName:'Pago con Tarjeta de Crédito', payCardDesc:'VISA / Mastercard / AMEX / JCB',
+    payCashName:'Efectivo Antes del Tratamiento', payCashDesc:'Por favor pague antes de comenzar',
+    payNotice:'Una vez completado el pago, procederemos con el tratamiento.',
+    termsLbl:'Términos y Condiciones', termsAgree:'Acepto los Términos y Condiciones', termsAgreeEn:'利用規約に同意します',
+    btnPay:'Revisar Reserva',
+    confTitle:'Confirmar Reserva', totalLbl:'Total',
+    confOutcall:'※ El cargo por desplazamiento de ¥2,200 está incluido.',
+    btnSubmit:'Confirmar y Pagar 🔒',
+    succTitle:'Reserva Completada', succMsg:'Le contactaremos pronto con más detalles.', succThanks:'Gracias por su reserva.',
+    succRef:'ID de Reserva',
+    notifEmail:'Correo de confirmación enviado',
+    notifIg:'Recordatorio Instagram', notifIgDesc:'Le contactaremos por Instagram 24h antes',
+    notifTh:'Recordatorio Threads', notifThDesc:'Le contactaremos por Threads 24h antes',
+    notifAdmin:'Admin Notificado', notifAdminDesc:'Detalles de reserva enviados al administrador',
+    backTop:'Volver al Inicio',
+    nomTitle:'Elección de Terapeuta', nomHint:'Puede elegir un terapeuta preferido (opcional)',
+    nomSkip:'Sin Preferencia', nomSkipSub:'Cualquier terapeuta disponible le atenderá • Sin cargo adicional',
+    progLabels:['Menú','Staff','Fecha','Lugar','Info','Pago','Confirmar'],
+    keyMenu:'Menú', keyDate:'Fecha', keyLoc:'Lugar', keyPay:'Pago', keyName:'Nombre', keyEmail:'Email', keyPhone:'Tel', keySocial:'SNS', keyStaff:'Terapeuta',
+  },
+  fr:{
+    heroSub:'Massage à domicile · Quartier Ueno / Asakusa', heroCta:'Réserver',
+    menuTitle:'Choisir un Menu', menuHint:'Veuillez sélectionner un service',
+    outcall:'※ Tous les services incluent des frais de déplacement de ¥2,200.',
+    cat1:'1. Massage à l\'Huile', cat2:'2. Massage Corps Entier', cat3:'3. Massage Facial Minceur', cat4:'4. Massage des Pieds',
+    btnMenu:'Choisir la Date et l\'Heure',
+    dtTitle:'Date et Heure', timeHint:'Sélectionner un Créneau', timeLegend:'× Réservé   ― Moins de 4h',
+    btnDt:'Sélectionner le Lieu', back:'Retour',
+    locTitle:'Lieu',
+    loc1:'Hôtel secteur Ueno / Asakusa', loc2:'Visite à Domicile', loc3:'Salon de Location Ueno (Privé)',
+    loc2extra:'※ ¥3,000 supplémentaires hors Taito City',
+    hotelLbl:'Nom de l\'Hôtel *', roomLbl:'Numéro de Chambre *', addrLbl:'Adresse *',
+    room2Lbl:'N° de chambre (obligatoire pour les appartements)', room2Warn:'Veuillez ne pas oublier le numéro de chambre.',
+    salonNote:'Après confirmation, nous vous enverrons l\'adresse du salon, situé près des stations Ueno et Okachimachi.',
+    mapLink:'Voir sur Google Maps', salonName:'Salon de Location Ueno',
+    btnLoc:'Informations Client',
+    custTitle:'Informations Client', lastLbl:'Nom *', firstLbl:'Prénom *',
+    emailLbl:'Email *', phoneLbl:'Téléphone *',
+    socialLbl:'Instagram / Threads ID (Obligatoire)', socialHint:'Vous devez suivre notre compte',
+    notesLbl:'Demandes Spéciales (Optionnel)', btnCust:'Informations de Paiement',
+    payTitle:'Paiement et Conditions',
+    payCardName:'Paiement par Carte', payCardDesc:'VISA / Mastercard / AMEX / JCB',
+    payCashName:'Espèces Avant le Soin', payCashDesc:'Veuillez payer avant le début du soin',
+    payNotice:'Une fois le paiement effectué, nous procéderons au soin.',
+    termsLbl:'Conditions Générales', termsAgree:'J\'accepte les Conditions Générales', termsAgreeEn:'I agree to the Terms & Conditions',
+    btnPay:'Vérifier la Réservation',
+    confTitle:'Confirmer la Réservation', totalLbl:'Total',
+    confOutcall:'※ Les frais de déplacement de ¥2,200 sont inclus.',
+    btnSubmit:'Confirmer et Payer 🔒',
+    succTitle:'Réservation Confirmée', succMsg:'Nous vous contacterons bientôt.', succThanks:'Merci pour votre réservation.',
+    succRef:'N° de Réservation',
+    notifEmail:'Email de confirmation envoyé',
+    notifIg:'Rappel Instagram', notifIgDesc:'Nous vous contacterons via Instagram 24h avant',
+    notifTh:'Rappel Threads', notifThDesc:'Nous vous contacterons via Threads 24h avant',
+    notifAdmin:'Admin Notifié', notifAdminDesc:'Détails de réservation envoyés à l\'admin',
+    backTop:'Retour en Haut',
+    nomTitle:'Choix du Thérapeute', nomHint:'Vous pouvez choisir un thérapeute préféré (optionnel)',
+    nomSkip:'Aucune Préférence', nomSkipSub:'Tout thérapeute disponible vous assistera • Sans frais supplémentaires',
+    progLabels:['Menu','Staff','Date','Lieu','Info','Paiement','Confirmer'],
+    keyMenu:'Menu', keyDate:'Date', keyLoc:'Lieu', keyPay:'Paiement', keyName:'Nom', keyEmail:'Email', keyPhone:'Tél', keySocial:'SNS', keyStaff:'Thérapeute',
+  },
+  de:{
+    heroSub:'Mobile Massage · Ueno / Asakusa', heroCta:'Jetzt Buchen',
+    menuTitle:'Menü Auswählen', menuHint:'Bitte wählen Sie eine Behandlung',
+    outcall:'※ Alle Leistungen beinhalten einen Aufpreis von ¥2.200 für den Hausbesuch.',
+    cat1:'1. Ölmassage', cat2:'2. Ganzkörpermassage', cat3:'3. Gesichts-Slimming-Massage', cat4:'4. Fußmassage',
+    btnMenu:'Datum & Uhrzeit Wählen',
+    dtTitle:'Datum & Uhrzeit', timeHint:'Zeitfenster Wählen', timeLegend:'× Gebucht   ― Innerhalb 4h',
+    btnDt:'Ort Auswählen', back:'Zurück',
+    locTitle:'Ort',
+    loc1:'Hotel im Bereich Ueno / Asakusa', loc2:'Hausbesuch', loc3:'Ueno Mietsalon (Privat)',
+    loc2extra:'※ ¥3.000 Aufpreis außerhalb Taito City',
+    hotelLbl:'Hotelname *', roomLbl:'Zimmernummer *', addrLbl:'Adresse *',
+    room2Lbl:'Zimmernummer (Pflicht bei Wohnungen)', room2Warn:'Bitte vergessen Sie die Zimmernummer nicht.',
+    salonNote:'Nach der Buchung senden wir Ihnen die Salonadresse. Der Salon befindet sich in der Nähe der Bahnhöfe Ueno und Okachimachi.',
+    mapLink:'Auf Google Maps ansehen', salonName:'Ueno Mietsalon',
+    btnLoc:'Kundendaten Eingeben',
+    custTitle:'Kundendaten', lastLbl:'Nachname *', firstLbl:'Vorname *',
+    emailLbl:'E-Mail *', phoneLbl:'Telefon *',
+    socialLbl:'Instagram / Threads ID (Pflicht)', socialHint:'Sie müssen unserem Account folgen',
+    notesLbl:'Besondere Anfragen (Optional)', btnCust:'Zahlungsinformationen',
+    payTitle:'Zahlung & AGB',
+    payCardName:'Kreditkartenzahlung', payCardDesc:'VISA / Mastercard / AMEX / JCB',
+    payCashName:'Barzahlung vor der Behandlung', payCashDesc:'Bitte vor Beginn der Behandlung bezahlen',
+    payNotice:'Nach Abschluss der Zahlung beginnen wir mit der Behandlung.',
+    termsLbl:'Allgemeine Geschäftsbedingungen', termsAgree:'Ich stimme den AGB zu', termsAgreeEn:'I agree to the Terms & Conditions',
+    btnPay:'Buchung Überprüfen',
+    confTitle:'Buchung Bestätigen', totalLbl:'Gesamt',
+    confOutcall:'※ Der Aufpreis von ¥2.200 ist im Gesamtpreis enthalten.',
+    btnSubmit:'Buchung Bestätigen 🔒',
+    succTitle:'Buchung Abgeschlossen', succMsg:'Wir werden uns in Kürze mit weiteren Details melden.', succThanks:'Vielen Dank für Ihre Buchung.',
+    succRef:'Buchungs-ID',
+    notifEmail:'Bestätigungs-E-Mail gesendet',
+    notifIg:'Instagram-Erinnerung', notifIgDesc:'Wir melden uns 24h vorher per Instagram',
+    notifTh:'Threads-Erinnerung', notifThDesc:'Wir melden uns 24h vorher per Threads',
+    notifAdmin:'Admin benachrichtigt', notifAdminDesc:'Buchungsdetails wurden an Admin gesendet',
+    backTop:'Zurück zum Anfang',
+    nomTitle:'Therapeuten Wählen', nomHint:'Sie können einen bevorzugten Therapeuten wählen (optional)',
+    nomSkip:'Keine Präferenz', nomSkipSub:'Ein verfügbarer Therapeut wird Ihnen helfen • Kein Aufpreis',
+    progLabels:['Menü','Staff','Datum','Ort','Info','Zahlung','Bestätigen'],
+    keyMenu:'Menü', keyDate:'Datum', keyLoc:'Ort', keyPay:'Zahlung', keyName:'Name', keyEmail:'E-Mail', keyPhone:'Tel', keySocial:'SNS', keyStaff:'Therapeut',
+  },
+  hi:{
+    heroSub:'मोबाइल मसाज · उएनो / असाकुसा', heroCta:'अभी बुक करें',
+    menuTitle:'मेनू चुनें', menuHint:'कृपया सेवा चुनें',
+    outcall:'※ सभी सेवाओं में ¥2,200 आउटकॉल शुल्क शामिल है।',
+    cat1:'1. ऑयल मसाज', cat2:'2. फुल बॉडी मसाज', cat3:'3. फेशियल स्लिमिंग', cat4:'4. फुट मसाज',
+    btnMenu:'तारीख और समय चुनें',
+    dtTitle:'तारीख और समय', timeHint:'समय चुनें', timeLegend:'× बुक है   ― 4 घंटे के भीतर',
+    btnDt:'स्थान चुनें', back:'वापस',
+    locTitle:'स्थान',
+    loc1:'उएनो/असाकुसा होटल', loc2:'घर पर विजिट', loc3:'उएनो रेंटल सैलून (प्राइवेट)',
+    loc2extra:'※ ताइतो सिटी के बाहर ¥3,000 अतिरिक्त',
+    hotelLbl:'होटल का नाम *', roomLbl:'कमरा नंबर *', addrLbl:'घर का पता *',
+    room2Lbl:'कमरा नंबर (अपार्टमेंट के लिए अनिवार्य)', room2Warn:'कमरा नंबर लिखना न भूलें।',
+    salonNote:'बुकिंग के बाद हम आपको सैलून का पता भेजेंगे। यह उएनो और ओकाचिमाची स्टेशन के पास है।',
+    mapLink:'Google Maps पर देखें', salonName:'उएनो रेंटल सैलून',
+    btnLoc:'ग्राहक जानकारी',
+    custTitle:'ग्राहक जानकारी', lastLbl:'उपनाम *', firstLbl:'नाम *',
+    emailLbl:'ईमेल *', phoneLbl:'फोन नंबर *',
+    socialLbl:'Instagram / Threads ID (अनिवार्य)', socialHint:'हमारे अकाउंट को फॉलो करना जरूरी है',
+    notesLbl:'विशेष अनुरोध (वैकल्पिक)', btnCust:'भुगतान जानकारी',
+    payTitle:'भुगतान और नियम',
+    payCardName:'क्रेडिट कार्ड भुगतान', payCardDesc:'VISA / Mastercard / AMEX / JCB',
+    payCashName:'उपचार से पहले नकद', payCashDesc:'उपचार शुरू होने से पहले भुगतान करें',
+    payNotice:'भुगतान पूरा होने के बाद उपचार शुरू होगा।',
+    termsLbl:'नियम और शर्तें', termsAgree:'मैं नियम और शर्तों से सहमत हूं', termsAgreeEn:'I agree to the Terms & Conditions',
+    btnPay:'बुकिंग देखें',
+    confTitle:'बुकिंग की पुष्टि करें', totalLbl:'कुल',
+    confOutcall:'※ ¥2,200 आउटकॉल शुल्क कुल में शामिल है।',
+    btnSubmit:'बुकिंग की पुष्टि करें 🔒',
+    succTitle:'बुकिंग पूरी हुई', succMsg:'हम जल्द ही आपसे संपर्क करेंगे।', succThanks:'आपकी बुकिंग के लिए धन्यवाद।',
+    succRef:'बुकिंग आईडी',
+    notifEmail:'पुष्टि ईमेल भेजा गया',
+    notifIg:'Instagram रिमाइंडर', notifIgDesc:'हम 24 घंटे पहले Instagram पर संपर्क करेंगे',
+    notifTh:'Threads रिमाइंडर', notifThDesc:'हम 24 घंटे पहले Threads पर संपर्क करेंगे',
+    notifAdmin:'एडमिन को सूचित किया', notifAdminDesc:'बुकिंग विवरण एडमिन को भेजा गया',
+    backTop:'शीर्ष पर वापस जाएं',
+    nomTitle:'थेरेपिस्ट चुनें', nomHint:'आप पसंदीदा थेरेपिस्ट चुन सकते हैं (वैकल्पिक)',
+    nomSkip:'कोई प्राथमिकता नहीं', nomSkipSub:'कोई भी उपलब्ध थेरेपिस्ट आपकी सेवा करेगा • कोई अतिरिक्त शुल्क नहीं',
+    progLabels:['मेनू','स्टाफ','तारीख','स्थान','जानकारी','भुगतान','पुष्टि'],
+    keyMenu:'मेनू', keyDate:'तारीख', keyLoc:'स्थान', keyPay:'भुगतान', keyName:'नाम', keyEmail:'ईमेल', keyPhone:'फोन', keySocial:'SNS', keyStaff:'थेरेपिस्ट',
+  }
+};
+
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let lang      = 'ja';
+let calDate   = new Date();
+let stripe    = null;
+let cardEl    = null;
+let cardReady = false;
+let termsOk   = false;
+let booking   = { menu:null, date:null, time:null, location:null, locDetail:{}, payment:null, customer:{}, terms:false, staff:null, nominationFee:0 };
+let reservations = JSON.parse(localStorage.getItem('uzm_res') || '[]');
+let blocked      = JSON.parse(localStorage.getItem('uzm_blk') || '{}');
+let staffCache   = [];
+
+// Real-time slot refresh
+let slotRefreshTimer = null;
+
+// ══════════════════════════════════════
+//  LANGUAGE
+// ══════════════════════════════════════
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    const codes = ['ja','en','zh','es','fr','de','hi'];
+    const i = ['日','EN','中','ES','FR','DE','हि'].indexOf(b.textContent);
+    b.classList.toggle('active', codes[i] === l);
+  });
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const t = T[lang];
+  const set = (id, txt) => { const el = document.getElementById(id); if(el) el.textContent = txt; };
+  set('hero-sub', t.heroSub); set('hero-cta-txt', t.heroCta);
+  set('t-menu-title', t.menuTitle); set('t-menu-hint', t.menuHint); set('t-outcall', '※ '+t.outcall.replace('※ ',''));
+  set('t-cat1', t.cat1); set('t-cat2', t.cat2); set('t-cat3', t.cat3); set('t-cat4', t.cat4);
+  set('t-btn-menu', t.btnMenu);
+  set('t-nom-title', t.nomTitle); set('t-nom-hint', t.nomHint);
+  set('t-nom-skip', t.nomSkip); set('t-nom-skip-sub', t.nomSkipSub);
+  set('t-btn-nom', t.btnMenu); set('t-back-nom', t.back);
+  set('t-dt-title', t.dtTitle); set('t-time-hint', t.timeHint); set('t-time-legend', t.timeLegend);
+  set('t-btn-dt', t.btnDt); set('t-back1', t.back); set('t-back2', t.back); set('t-back3', t.back); set('t-back4', t.back); set('t-back5', t.back);
+  set('t-loc-title', t.locTitle);
+  set('t-loc1-name', t.loc1); set('t-loc2-name', t.loc2); set('t-loc3-name', t.loc3);
+  set('t-loc2-extra', t.loc2extra);
+  set('t-hotel-lbl', t.hotelLbl); set('t-room-lbl', t.roomLbl); set('t-addr-lbl', t.addrLbl);
+  set('t-room2-lbl', t.room2Lbl); set('t-room2-warn', t.room2Warn);
+  set('t-salon-note', t.salonNote); set('t-map-link', t.mapLink); set('t-salon-name', t.salonName);
+  set('t-btn-loc', t.btnLoc);
+  set('t-cust-title', t.custTitle); set('t-last-lbl', t.lastLbl); set('t-first-lbl', t.firstLbl);
+  set('t-email-lbl', t.emailLbl); set('t-phone-lbl', t.phoneLbl);
+  set('t-social-lbl', t.socialLbl); set('t-social-hint', t.socialHint);
+  set('t-notes-lbl', t.notesLbl); set('t-btn-cust', t.btnCust);
+  set('t-pay-title', t.payTitle);
+  set('t-pay-card-name', t.payCardName); set('t-pay-card-desc', t.payCardDesc);
+  set('t-pay-cash-name', t.payCashName); set('t-pay-cash-desc', t.payCashDesc);
+  set('t-pay-notice', t.payNotice);
+  set('t-terms-lbl', t.termsLbl); set('t-terms-agree', t.termsAgree); set('t-terms-agree-en', t.termsAgreeEn);
+  set('t-btn-pay', t.btnPay);
+  set('t-conf-title', t.confTitle); set('t-total-lbl', t.totalLbl); set('t-conf-outcall', t.confOutcall);
+  set('t-btn-submit', t.btnSubmit);
+  set('t-succ-title', t.succTitle); set('t-succ-msg', t.succMsg); set('t-succ-thanks', t.succThanks);
+  set('t-succ-ref', t.succRef);
+  set('t-notif-email', t.notifEmail);
+  set('t-notif-ig', t.notifIg); set('t-notif-ig-desc', t.notifIgDesc);
+  set('t-notif-th', t.notifTh); set('t-notif-th-desc', t.notifThDesc);
+  set('t-notif-admin', t.notifAdmin); set('t-notif-admin-desc', t.notifAdminDesc);
+  set('t-back-top', t.backTop);
+}
+
+// ══════════════════════════════════════
+//  PAGES
+// ══════════════════════════════════════
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function startBooking() { goPage('page-menu'); renderProg('menu'); }
+
+const STEPS = ['menu','nomination','datetime','location','customer','payment','confirm'];
+
+function goStep(step) {
+  if (step === 'confirm') buildConfirm();
+  if (step === 'datetime') { renderCal(); startSlotRefresh(); }
+  if (step === 'payment' && !cardEl) initStripe();
+  if (step === 'nomination') loadStaff();
+  goPage('page-' + step);
+  renderProg(step);
+}
+
+// ══════════════════════════════════════
+//  PROGRESS
+// ══════════════════════════════════════
+function renderProg(cur) {
+  const ci = STEPS.indexOf(cur);
+  STEPS.forEach(s => {
+    const el = document.getElementById('prog-' + s);
+    if (!el) return;
+    const labels = T[lang].progLabels;
+    const html = STEPS.map((_, j) => {
+      const cls = j < ci ? 'done' : j === ci ? 'active' : '';
+      return `<div class="prog-step ${cls}">
+        <div class="prog-dot">${j < ci ? '✓' : j+1}</div>
+        <div class="prog-lbl">${labels[j]||''}</div>
+      </div>${j < STEPS.length-1 ? '<div class="prog-line"></div>' : ''}`;
+    }).join('');
+    el.innerHTML = `<div class="prog-steps">${html}</div>`;
+  });
+}
+
+// ══════════════════════════════════════
+//  MENU
+// ══════════════════════════════════════
+function selectMenu(el, num, dur, price, nameEn, nameJa) {
+  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('selected'));
+  el.classList.add('selected');
+  booking.menu = { num, dur, price, nameEn, nameJa };
+  booking.date = null; booking.time = null;
+  document.getElementById('btn-menu').disabled = false;
+}
+
+// ══════════════════════════════════════
+//  NOMINATION
+// ══════════════════════════════════════
+async function loadStaff() {
+  const loadEl = document.getElementById('staff-loading');
+  const gridEl = document.getElementById('staff-grid');
+  loadEl.style.display = 'block'; gridEl.style.display = 'none';
+  try {
+    const { data, error } = await sb.from('staff').select('*').eq('is_active', true).order('display_order');
+    if (error) throw error;
+    staffCache = data || [];
+    loadEl.style.display = 'none'; gridEl.style.display = 'grid';
+    renderStaffList(staffCache);
+  } catch(e) {
+    loadEl.textContent = 'スタッフ情報を読み込めませんでした';
+  }
+}
+
+function renderStaffList(list) {
+  const grid = document.getElementById('staff-grid');
+  if (!list.length) {
+    grid.innerHTML = '<p style="font-size:.72rem;color:var(--text3);grid-column:1/-1">現在登録中のスタッフがいません</p>';
+  } else {
+    grid.innerHTML = list.map(s => {
+      const url = s.photo_url || s.avatar_url || s.image_url || s.photo || '';
+      const img = url ? `<img class="staff-photo" src="${url}" alt="${s.name}" loading="lazy">`
+                      : `<div class="staff-photo-ph">${s.name.charAt(0)}</div>`;
+      return `<div class="staff-card" id="sc-${s.id}" onclick="selectStaff('${s.id}')">
+        ${img}
+        <div class="staff-info">
+          <div class="staff-name">${s.name}</div>
+          <div class="staff-role">${s.job_title||''}</div>
+          <div class="staff-fee">+ ¥${(s.nomination_fee||1000).toLocaleString()}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  // Restore previous selection
+  if (booking.staff) {
+    document.getElementById('sc-' + booking.staff.id)?.classList.add('selected');
+    document.getElementById('btn-nom').disabled = false;
+  } else if (!document.getElementById('btn-nom').disabled) {
+    document.getElementById('nom-no').classList.add('selected');
+  }
+}
+
+function selectStaff(staffId) {
+  const s = staffCache.find(x => String(x.id) === String(staffId));
+  if (!s) return;
+  booking.staff = s;
+  booking.nominationFee = s.nomination_fee || 1000;
+  booking.date = null; booking.time = null;
+  document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('sc-' + staffId)?.classList.add('selected');
+  document.getElementById('nom-no').classList.remove('selected');
+  document.getElementById('btn-nom').disabled = false;
+}
+
+function skipNomination() {
+  booking.staff = null;
+  booking.nominationFee = 0;
+  booking.date = null; booking.time = null;
+  document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('nom-no').classList.add('selected');
+  document.getElementById('btn-nom').disabled = false;
+}
+
+// ══════════════════════════════════════
+//  CALENDAR
+// ══════════════════════════════════════
+function renderCal() {
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+  document.getElementById('cal-month').textContent = `${y}年 ${m+1}月`;
+  const grid = document.getElementById('cal-grid');
+  const dh = ['日','月','火','水','木','金','土'];
+  grid.innerHTML = dh.map(d => `<div class="cal-dh">${d}</div>`).join('');
+  const today = new Date(); today.setHours(0,0,0,0);
+  const first = new Date(y,m,1).getDay();
+  const total = new Date(y,m+1,0).getDate();
+  for (let i=0; i<first; i++) grid.innerHTML += '<div class="cal-d ce"></div>';
+  for (let d=1; d<=total; d++) {
+    const date = new Date(y,m,d);
+    const isPast = date < today;
+    const isSel  = booking.date && booking.date.toDateString() === date.toDateString();
+    const isToday = date.toDateString() === today.toDateString();
+    const cls = isPast ? 'cp' : isSel ? 'cs' : isToday ? 'ct' : '';
+    const oc = isPast ? '' : `onclick="selDate(${y},${m},${d})"`;
+    grid.innerHTML += `<div class="cal-d ${cls}" ${oc}>${d}</div>`;
+  }
+}
+function changeMonth(dir) { calDate.setMonth(calDate.getMonth()+dir); renderCal(); }
+function selDate(y,m,d) {
+  booking.date = new Date(y,m,d);
+  booking.time = null;
+  renderCal();
+  document.getElementById('time-section').style.display = 'block';
+  renderTimeSlots();
+  document.getElementById('btn-dt').disabled = true;
+}
+
+// ══════════════════════════════════════
+//  TIME SLOTS — 4h cutoff + real-time
+// ══════════════════════════════════════
+function startSlotRefresh() {
+  clearInterval(slotRefreshTimer);
+  slotRefreshTimer = setInterval(() => {
+    if (booking.date) renderTimeSlots();
+  }, 60000); // refresh every 60s
+}
+
+async function renderTimeSlots() {
+  if (!booking.date || !booking.menu) return;
+  const grid = document.getElementById('time-grid');
+  grid.innerHTML = '<div style="font-size:.7rem;color:var(--text3);padding:10px;grid-column:1/-1">読み込み中...</div>';
+
+  const dk  = booking.date.toISOString().split('T')[0];
+  const dur = booking.menu.dur;
+
+  // Fetch booked slots from Supabase
+  let bookedSlots = [];
+  try {
+    const { data } = await sb.from('bookings').select('time_slot,duration_min').eq('date', dk).neq('status','cancelled');
+    if (data) bookedSlots = data.map(r => ({ s: t2m(r.time_slot), d: r.duration_min }));
+  } catch(e) {
+    bookedSlots = reservations.filter(r => r.date === dk).map(r => ({ s: t2m(r.time), d: r.dur }));
+  }
+
+  // Fetch staff shifts if nominated
+  let staffShifts = null;
+  if (booking.staff) {
+    try {
+      const { data: shifts } = await sb.from('staff_shifts').select('start_time,end_time').eq('staff_id', booking.staff.id).eq('date', dk);
+      staffShifts = shifts || [];
+    } catch(e) { staffShifts = []; }
+  }
+
+  grid.innerHTML = '';
+  const blkd = blocked[dk] || [];
+  const now = new Date();
+  const isToday = booking.date.toDateString() === now.toDateString();
+
+  for (let h=9; h<21; h++) {
+    ['00','30'].forEach(min => {
+      const lbl = `${String(h).padStart(2,'0')}:${min}`;
+      const sm  = h*60 + parseInt(min);
+      const em  = sm + dur;
+      if (em > 21*60) return;
+
+      let tooSoon = false;
+      if (isToday) {
+        const nowMins = now.getHours()*60 + now.getMinutes();
+        if (sm - nowMins < CUTOFF_HOURS * 60) tooSoon = true;
+      }
+
+      const isBlk     = blkd.includes(lbl);
+      const isBkd     = bookedSlots.some(b => sm < b.s + b.d && em > b.s);
+      const outOfShift = staffShifts && staffShifts.length > 0
+        ? !staffShifts.some(sh => t2m(sh.start_time) <= sm && t2m(sh.end_time) >= em)
+        : false;
+      const unavail   = isBlk || isBkd || tooSoon || outOfShift;
+
+      const div = document.createElement('div');
+      if (outOfShift)  div.className = 'ts bkd';
+      else if (tooSoon) div.className = 'ts soon';
+      else if (isBlk)  div.className = 'ts blk';
+      else if (isBkd)  div.className = 'ts bkd';
+      else             div.className = 'ts';
+
+      div.textContent = (isBkd || outOfShift) ? `${lbl} ×` : tooSoon ? `${lbl} ―` : lbl;
+
+      if (!unavail) {
+        div.onclick = () => {
+          document.querySelectorAll('.ts').forEach(t => t.classList.remove('sel'));
+          div.classList.add('sel');
+          booking.time = lbl;
+          document.getElementById('btn-dt').disabled = false;
+        };
+      }
+      grid.appendChild(div);
+    });
+  }
+  const nomNote = booking.nominationFee > 0 ? ` + 指名料 ¥${booking.nominationFee.toLocaleString()}` : '';
+  document.getElementById('menu-display').textContent =
+    `${lang==='ja'?booking.menu.nameJa:booking.menu.nameEn} ${booking.menu.dur}min — ¥${booking.menu.price.toLocaleString()} + ¥${OUTCALL_FEE.toLocaleString()}${nomNote}`;
+}
+function t2m(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
+
+// ══════════════════════════════════════
+//  LOCATION
+// ══════════════════════════════════════
+function selectLoc(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('loc'+i).classList.toggle('selected', i===n);
+    document.getElementById('lf'+i).classList.toggle('show', i===n);
+  });
+  booking.location = n; booking.locDetail = {};
+  valLoc();
+}
+function valLoc() {
+  if (!booking.location) { document.getElementById('btn-loc').disabled = true; return; }
+  let ok = true;
+  if (booking.location === 1) {
+    const hotel = document.getElementById('hotel-name').value.trim();
+    const room  = document.getElementById('room-num').value.trim();
+    booking.locDetail = { hotel, room };
+    ok = !!(hotel && room);
+  } else if (booking.location === 2) {
+    const addr  = document.getElementById('home-addr').value.trim();
+    const room2 = document.getElementById('room-num2').value.trim();
+    booking.locDetail = { address: addr, room2 };
+    ok = !!addr; // room2 encouraged but not strictly blocking
+  } else {
+    ok = true;
+  }
+  document.getElementById('btn-loc').disabled = !ok;
+}
+
+// ══════════════════════════════════════
+//  CUSTOMER
+// ══════════════════════════════════════
+function valCust() {
+  const l = document.getElementById('c-last').value.trim();
+  const f = document.getElementById('c-first').value.trim();
+  const e = document.getElementById('c-email').value.trim();
+  const p = document.getElementById('c-phone').value.trim();
+  const s = document.getElementById('c-social').value.trim();
+  const ok = l && f && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && p && s;
+  document.getElementById('btn-cust').disabled = !ok;
+  if (ok) booking.customer = { last:l, first:f, email:e, phone:p, social:s, notes:document.getElementById('c-notes').value.trim() };
+}
+
+// ══════════════════════════════════════
+//  PAYMENT
+// ══════════════════════════════════════
+function selectPay(type) {
+  booking.payment = type;
+  document.getElementById('pay-card').classList.toggle('selected', type==='card');
+  document.getElementById('pay-cash').classList.toggle('selected', type==='cash');
+  document.getElementById('stripe-section').style.display = type==='card' ? 'block' : 'none';
+  updatePayBtn();
+}
+function updatePayBtn() {
+  const payOk = booking.payment === 'cash' || (booking.payment === 'card' && cardReady);
+  document.getElementById('btn-pay').disabled = !(payOk && termsOk);
+}
+
+// ══════════════════════════════════════
+//  TERMS
+// ══════════════════════════════════════
+function toggleTerms() {
+  termsOk = !termsOk;
+  document.getElementById('terms-chk').classList.toggle('checked', termsOk);
+  document.getElementById('chk-box').textContent = termsOk ? '✓' : '';
+  updatePayBtn();
+}
+
+// ══════════════════════════════════════
+//  STRIPE — 本番対応
+// ══════════════════════════════════════
+function initStripe() {
+  if (!STRIPE_KEY) { _stripeGuide(); return; }
+  try {
+    stripe = Stripe(STRIPE_KEY, { locale: lang === 'ja' ? 'ja' : 'en' });
+    const elements = stripe.elements({
+      fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400&display=swap' }],
+      appearance: {
+        theme: 'night',
+        variables: {
+          colorPrimary:'#b8965a', colorBackground:'#080808', colorText:'#f0ece4',
+          colorTextSecondary:'#a09890', colorTextPlaceholder:'#5a5550', colorDanger:'#c0504a',
+          fontFamily:'"DM Sans",sans-serif', fontSizeBase:'14px', fontWeightNormal:'300', borderRadius:'3px',
+        },
+        rules: {
+          '.Input': { backgroundColor:'#080808', border:'1px solid #2a2a2a', boxShadow:'none', padding:'11px 12px', color:'#f0ece4' },
+          '.Input:focus': { border:'1px solid #b8965a', boxShadow:'0 0 0 3px rgba(184,150,90,.1)' },
+          '.Input--invalid': { border:'1px solid #c0504a', boxShadow:'0 0 0 3px rgba(192,80,74,.1)' },
+          '.Label': { fontSize:'0.66rem', letterSpacing:'0.1em', textTransform:'uppercase', color:'#5a5550', fontWeight:'400', marginBottom:'6px' },
+          '.Error': { fontSize:'0.7rem', color:'#c0504a', marginTop:'6px' },
+        }
+      }
+    });
+    cardEl = elements.create('card', {
+      style: {
+        base: { color:'#f0ece4', fontFamily:'"DM Sans",sans-serif', fontSmoothing:'antialiased', fontSize:'14px', fontWeight:'300', '::placeholder':{ color:'#5a5550' }, iconColor:'#b8965a' },
+        invalid: { color:'#c0504a', iconColor:'#c0504a' },
+        complete: { color:'#4a9e74', iconColor:'#4a9e74' },
+      },
+      hidePostalCode: true, iconStyle: 'solid',
+    });
+    cardEl.mount('#stripe-card-element');
+    const wrap = document.getElementById('stripe-wrap');
+    cardEl.on('focus',  () => wrap.classList.add('focused'));
+    cardEl.on('blur',   () => wrap.classList.remove('focused'));
+    cardEl.on('change', e => {
+      const errEl = document.getElementById('card-err');
+      if (e.error) { errEl.textContent = e.error.message; wrap.classList.add('invalid'); }
+      else          { errEl.textContent = ''; wrap.classList.remove('invalid'); }
+      cardReady = e.complete;
+      // brand highlight
+      if (e.brand) {
+        const map = { visa:'brand-v', mastercard:'brand-m', amex:'brand-a', jcb:'brand-j' };
+        document.querySelectorAll('.brand').forEach(b => { b.style.opacity='.3'; b.style.transform='scale(.95)'; });
+        const cls = map[e.brand];
+        if (cls) { const b = document.querySelector('.'+cls); if(b) { b.style.opacity='1'; b.style.transform='scale(1.08)'; } }
+      }
+      updatePayBtn();
+    });
+  } catch(err) { _stripeGuide(); }
+}
+function _stripeGuide() {
+  document.getElementById('stripe-card-element').innerHTML =
+    '<div style="padding:13px;border:1px dashed #2a2a2a;border-radius:3px;line-height:1.8">'
+    +'<div style="font-size:.7rem;color:#b8965a;margin-bottom:5px">⚙️ Stripe公開キーを設定してください</div>'
+    +'<div style="font-size:.64rem;color:#5a5550">STRIPE_KEY に <code style="background:#1a1a1a;padding:1px 5px;border-radius:2px;color:#d4b483">pk_live_...</code> を入力</div>'
+    +'</div>';
+  cardReady = true; updatePayBtn();
+}
+
+// ══════════════════════════════════════
+//  CONFIRM
+// ══════════════════════════════════════
+function buildConfirm() {
+  const m = booking.menu, total = m.price + OUTCALL_FEE + booking.nominationFee;
+  const t = T[lang];
+  const ds = booking.date ? `${booking.date.getFullYear()}/${booking.date.getMonth()+1}/${booking.date.getDate()} ${booking.time}` : '—';
+  const lmap = { 1: t.loc1, 2: t.loc2, 3: t.loc3 };
+  let ld = '';
+  if (booking.location === 1) ld = ` / ${booking.locDetail.hotel} ${booking.locDetail.room}`;
+  if (booking.location === 2) ld = ` / ${booking.locDetail.address}${booking.locDetail.room2?' #'+booking.locDetail.room2:''}`;
+  if (booking.location === 3) ld = '';
+
+  const rows = [
+    [t.keyMenu,  `${lang==='ja'?m.nameJa:m.nameEn} ${m.dur}min`],
+    [t.keyDate,  ds],
+    [t.keyLoc,   `${lmap[booking.location]}${ld}`],
+    [t.keyPay,   booking.payment==='card'?t.payCardName:t.payCashName],
+    [t.keyName,  `${booking.customer.last} ${booking.customer.first}`],
+    [t.keyEmail, booking.customer.email],
+    [t.keyPhone, booking.customer.phone],
+    [t.keySocial,booking.customer.social],
+  ];
+  if (booking.staff) rows.splice(1, 0, [t.keyStaff||'担当スタッフ', `${booking.staff.name} (+¥${booking.nominationFee.toLocaleString()})`]);
+  document.getElementById('conf-table').innerHTML =
+    rows.map(([k,v]) => `<div class="conf-row"><span class="conf-key">${k}</span><span class="conf-val">${v}</span></div>`).join('');
+  document.getElementById('conf-amt').textContent = `¥${total.toLocaleString()}`;
+  document.getElementById('conf-bd').textContent  = booking.nominationFee > 0
+    ? `¥${m.price.toLocaleString()} + ¥${OUTCALL_FEE.toLocaleString()} + 指名料 ¥${booking.nominationFee.toLocaleString()}`
+    : `¥${m.price.toLocaleString()} + ¥${OUTCALL_FEE.toLocaleString()}`;
+}
+
+// ══════════════════════════════════════
+//  SUBMIT — Stripe 本番フロー
+// ══════════════════════════════════════
+async function submitRes() {
+  const btn  = document.getElementById('btn-submit');
+  const spin = document.getElementById('spin');
+  const txt  = document.getElementById('t-btn-submit');
+  btn.disabled = true; btn.classList.add('loading'); spin.style.display = 'block';
+  txt.textContent = lang==='ja' ? '処理中...' : 'Processing...';
+
+  const total    = booking.menu.price + OUTCALL_FEE + booking.nominationFee;
+  const fullName = `${booking.customer.last} ${booking.customer.first}`;
+  const desc     = `${booking.menu.nameJa} ${booking.menu.dur}min — ${booking.date.toISOString().split('T')[0]} ${booking.time}`;
+
+  try {
+    if (booking.payment === 'card' && stripe && cardEl) {
+      // ── STEP 1: バックエンドで PaymentIntent 作成 ──
+      const piRes = await fetch('/api/create-payment-intent', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ amount:total, currency:'jpy', email:booking.customer.email, name:fullName, description:desc })
+      });
+      if (!piRes.ok) {
+        const errData = await piRes.json().catch(()=>({}));
+        throw new Error(errData.error || '決済の初期化に失敗しました');
+      }
+      const { clientSecret } = await piRes.json();
+
+      // ── STEP 2: Stripe でカード決済を実行 ──
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: { card:cardEl, billing_details:{ name:fullName, email:booking.customer.email, phone:booking.customer.phone } }
+      });
+      if (error) throw new Error(error.message);
+      if (paymentIntent.status !== 'succeeded') throw new Error('決済が完了しませんでした。カード情報をご確認ください。');
+
+      // ── STEP 3: メール・SNS通知 ──
+      await fetch('/api/send-notifications', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          customerEmail:  booking.customer.email,
+          ownerEmail:     OWNER_EMAIL,
+          customerSocial: booking.customer.social,
+          name:           fullName,
+          service:        desc,
+          date:           booking.date.toISOString().split('T')[0],
+          time:           booking.time,
+          total:          `¥${total.toLocaleString()}`,
+          payment:        'クレジットカード（決済済み）',
+          paymentId:      paymentIntent.id,
+          lang,
+        })
+      }).catch(e => console.warn('通知送信エラー:', e));
+    } else {
+      await new Promise(r => setTimeout(r, 1200));
+    }
+
+    // Save
+    const id = 'UZM-' + Date.now().toString(36).toUpperCase();
+    const res = {
+      id, date: booking.date.toISOString().split('T')[0], time: booking.time,
+      dur: booking.menu.dur, menu: booking.menu, location: booking.location,
+      locDetail: booking.locDetail, payment: booking.payment,
+      customer: booking.customer, total, status:'confirmed',
+      createdAt: new Date().toISOString(),
+    };
+    // Save to Supabase
+    try {
+      await sb.from('bookings').insert({
+        booking_number:  id,
+        status:          booking.payment === 'card' ? 'confirmed' : 'pending',
+        menu_name:       booking.menu.nameEn,
+        duration_min:    booking.menu.dur,
+        price:           booking.menu.price,
+        location_type:   ['hotel','home','salon'][booking.location-1],
+        hotel_name:      booking.locDetail.hotel   || null,
+        room_number:     booking.locDetail.room    || booking.locDetail.room2 || null,
+        address:         booking.locDetail.address || null,
+        date:            booking.date.toISOString().split('T')[0],
+        time_slot:       booking.time,
+        first_name:      booking.customer.first,
+        last_name:       booking.customer.last,
+        email:           booking.customer.email,
+        phone:           booking.customer.phone,
+        sns_id:          booking.customer.social,
+        notes:           booking.customer.notes || null,
+        payment_method:  booking.payment,
+        language:        lang,
+        total:           total,
+        staff_id:        booking.staff ? booking.staff.id : null,
+        nomination_fee:  booking.nominationFee,
+      });
+    } catch(sbErr) { console.warn('Supabase save error:', sbErr.message); }
+    // Fallback localStorage
+    reservations.push(res);
+    localStorage.setItem('uzm_res', JSON.stringify(reservations));
+    clearInterval(slotRefreshTimer);
+    showSuccess(res);
+
+  } catch(err) {
+    document.getElementById('card-err').textContent = '⚠️ ' + err.message;
+    btn.disabled = false; btn.classList.remove('loading'); spin.style.display = 'none';
+    txt.textContent = T[lang].btnSubmit;
+  }
+}
+
+// ══════════════════════════════════════
+//  SUCCESS
+// ══════════════════════════════════════
+function showSuccess(res) {
+  document.getElementById('succ-id').textContent = res.id;
+  document.getElementById('succ-email-addr').textContent = ' ' + res.customer.email;
+  const ds = `${res.date.replace(/-/g,'/')} ${res.time}`;
+  document.getElementById('succ-summary').innerHTML = `
+    <div class="sec-card" style="margin:0;text-align:left">
+      <div class="sec-body">
+        <div class="conf-row"><span class="conf-key">${T[lang].keyMenu}</span><span class="conf-val">${lang==='ja'?res.menu.nameJa:res.menu.nameEn} ${res.menu.dur}min</span></div>
+        <div class="conf-row"><span class="conf-key">${T[lang].keyDate}</span><span class="conf-val">${ds}</span></div>
+        <div class="conf-row"><span class="conf-key">${T[lang].totalLbl}</span><span class="conf-val" style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--gold2)">¥${res.total.toLocaleString()}</span></div>
+      </div>
+    </div>`;
+  goPage('page-success');
+}
+
+// ══════════════════════════════════════
+//  ADMIN
+// ══════════════════════════════════════
+function admTab(name) {
+  const names = ['overview','reservations','block'];
+  document.querySelectorAll('.adm-tab').forEach((t,i) => t.classList.toggle('active', names[i]===name));
+  document.querySelectorAll('.adm-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  if (name !== 'block') renderAdmRes();
+  if (name === 'block') { document.getElementById('blk-date').value = new Date().toISOString().split('T')[0]; renderBlk(); }
+}
+function renderAdmRes() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('s-total').textContent = reservations.length;
+  document.getElementById('s-today').textContent = reservations.filter(r=>r.date===today).length;
+  document.getElementById('s-rev').textContent   = '¥'+reservations.reduce((s,r)=>s+r.total,0).toLocaleString();
+  document.getElementById('s-pend').textContent  = reservations.filter(r=>r.status==='pending').length;
+  const mkCard = r => `<div class="res-card"><div class="res-dot"></div><div style="flex:1"><div class="res-name">${r.customer.last} ${r.customer.first}</div><div class="res-det">${r.date} ${r.time} · ${r.menu.nameJa} ${r.menu.dur}min<br>${r.customer.email} · ${r.payment==='card'?'💳':'💴'}</div></div><div class="res-amt">¥${r.total.toLocaleString()}</div></div>`;
+  const empty  = '<p style="font-size:.74rem;color:var(--text3)">予約はまだありません</p>';
+  const recent = reservations.slice(-5).reverse().map(mkCard).join('') || empty;
+  const all    = reservations.slice().reverse().map(mkCard).join('') || empty;
+  if (document.getElementById('adm-recent')) document.getElementById('adm-recent').innerHTML = recent;
+  if (document.getElementById('adm-all'))    document.getElementById('adm-all').innerHTML    = all;
+}
+function renderBlk() {
+  const dk = document.getElementById('blk-date').value; if (!dk) return;
+  const blkd = blocked[dk] || [];
+  const g = document.getElementById('blk-grid'); g.innerHTML = '';
+  for (let h=9; h<21; h++) {
+    ['00','30'].forEach(min => {
+      const lbl = `${String(h).padStart(2,'0')}:${min}`;
+      const d = document.createElement('div');
+      d.className = 'blk-slot' + (blkd.includes(lbl)?' blocked':'');
+      d.textContent = lbl;
+      d.onclick = () => d.classList.toggle('blocked');
+      g.appendChild(d);
+    });
+  }
+}
+function saveBlk() {
+  const dk = document.getElementById('blk-date').value;
+  blocked[dk] = [...document.querySelectorAll('.blk-slot.blocked')].map(e => e.textContent);
+  localStorage.setItem('uzm_blk', JSON.stringify(blocked));
+  alert('保存しました ✓');
+}
+
+// ══════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════
+document.getElementById('blk-date').value = new Date().toISOString().split('T')[0];
+applyTranslations();
+</script>
+
+<!--
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  📋 バックエンド実装ガイド（Vercel推奨）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  環境変数:
+    STRIPE_SECRET_KEY = sk_live_XXXXX
+    SENDGRID_API_KEY  = SG.XXXXXXXX
+    OWNER_EMAIL       = owner@example.com
+
+  /api/create-payment-intent.js
+  ─────────────────────────────
+  import Stripe from 'stripe';
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  export default async (req) => {
+    const { amount, currency, email, name, description } = await req.json();
+    const pi = await stripe.paymentIntents.create({
+      amount, currency, receipt_email: email,
+      description, metadata: { name, email }
+    });
+    return Response.json({ clientSecret: pi.client_secret });
+  };
+
+  /api/send-notifications.js
+  ──────────────────────────
+  - SendGrid で顧客・管理者にメール送信
+  - 24時間前リマインダー → Vercel Cron で /api/remind を定期実行
+  - Instagram DM / Threads DM → Meta Graph API または手動対応
+    (Instagram/ThreadsのDM自動送信はAPIが制限されているため、
+     SNS IDを管理画面に表示して手動DM推奨)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-->
+</body>
+</html>

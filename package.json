@@ -1,0 +1,12 @@
+{
+  "name": "ueno-zen-massage",
+  "version": "1.0.0",
+  "description": "UENO ZEN MASSAGE — Booking & Payment System",
+  "private": true,
+  "dependencies": {
+    "stripe": "^16.0.0"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}
