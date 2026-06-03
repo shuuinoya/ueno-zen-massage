@@ -427,6 +427,7 @@ textarea.fi{resize:vertical}
       </div>
       <div class="loc-fields" id="lf3">
         <div class="loc-note" id="t-salon-note">予約完了後、施術場所の住所をご案内いたします。場所は上野駅・御徒町駅から近いレンタルサロンになります。</div>
+        <div id="salon-late-warn" style="display:none;font-size:.64rem;color:var(--text3);margin-top:6px;line-height:1.6">※ 22:00以降のご予約の場合、お店によって貸し出せない場合がございます。その際はご連絡いたします。</div>
         <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=台東区上野4-8-6+プラザUビル3階" target="_blank">
           📍 <span id="t-map-link">Google マップで確認する</span>
         </a>
@@ -1038,6 +1039,7 @@ function goStep(step) {
   if (step === 'datetime') { renderCal(); startSlotRefresh(); }
   if (step === 'payment' && !cardEl) initStripe();
   if (step === 'nomination') loadStaff();
+  if (step === 'location') checkLateWarn();
   goPage('page-' + step);
   renderProg(step);
 }
@@ -1263,6 +1265,14 @@ function t2m(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
 // ══════════════════════════════════════
 //  LOCATION
 // ══════════════════════════════════════
+function checkLateWarn() {
+  const warn = document.getElementById('salon-late-warn');
+  if (!warn) return;
+  const isLate = booking.time && parseInt(booking.time.split(':')[0]) >= 22;
+  const isSalon = booking.location === 3;
+  warn.style.display = (isLate && isSalon) ? 'block' : 'none';
+}
+
 function selectLoc(n) {
   [1,2,3].forEach(i => {
     document.getElementById('loc'+i).classList.toggle('selected', i===n);
@@ -1270,6 +1280,7 @@ function selectLoc(n) {
   });
   booking.location = n; booking.locDetail = {};
   valLoc();
+  checkLateWarn();
 }
 function valLoc() {
   if (!booking.location) { document.getElementById('btn-loc').disabled = true; return; }
