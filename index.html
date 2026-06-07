@@ -1283,16 +1283,22 @@ async function submitRes() {
 
   try {
     if (booking.payment === 'card' && stripe && cardEl) {
-      // ── STEP 1: バックエンドで PaymentIntent 作成 ──
+      // ── STEP 1: バックエンドで PaymentIntent 作成（金額はサーバー側で確定）──
       const piRes = await fetch('/api/create-payment-intent', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ amount:total, currency:'jpy', email:booking.customer.email, name:fullName, description:desc })
+        body: JSON.stringify({
+          menuNum: booking.menu.num,
+          email:   booking.customer.email,
+          name:    fullName,
+          date:    booking.date.toISOString().split('T')[0],
+          time:    booking.time,
+        })
       });
       if (!piRes.ok) {
         const errData = await piRes.json().catch(()=>({}));
         throw new Error(errData.error || '決済の初期化に失敗しました');
       }
-      const { clientSecret } = await piRes.json();
+      const { clientSecret, total: confirmedTotal } = await piRes.json();
 
       // ── STEP 2: Stripe でカード決済を実行 ──
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
