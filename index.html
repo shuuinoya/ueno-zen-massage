@@ -6,7 +6,6 @@
 <title>UENO ZEN MASSAGE — Reservation</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Noto+Serif+JP:wght@200;300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://js.stripe.com/v3/"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root{
   --bg:#080808;--surface:#0f0f0f;--surface2:#161616;
@@ -240,26 +239,6 @@ textarea.fi{resize:vertical}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 @media(min-width:560px){.time-grid,.blk-grid{grid-template-columns:repeat(6,1fr)}}
 @media(max-width:360px){.form-row{grid-template-columns:1fr}}
-
-/* NOMINATION */
-.nom-option{display:flex;align-items:center;gap:12px;padding:13px;border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all .2s;margin-bottom:8px;background:var(--bg)}
-.nom-option:hover{border-color:var(--gold)}
-.nom-option.selected{border-color:var(--gold);background:rgba(184,150,90,.06)}
-.nom-icon{width:44px;height:44px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:var(--text3);flex-shrink:0}
-.nom-name{font-size:.8rem;margin-bottom:2px}
-.nom-sub{font-size:.63rem;color:var(--text3);line-height:1.5}
-.nom-check{width:18px;height:18px;border-radius:50%;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--gold);flex-shrink:0;transition:all .2s}
-.nom-option.selected .nom-check::after{content:'✓'}
-.staff-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:4px}
-.staff-card{border:1px solid var(--border);border-radius:3px;cursor:pointer;transition:all .2s;overflow:hidden;background:var(--bg)}
-.staff-card:hover{border-color:var(--gold)}
-.staff-card.selected{border-color:var(--gold);background:rgba(184,150,90,.06)}
-.staff-photo{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--surface2)}
-.staff-photo-ph{width:100%;aspect-ratio:1;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--text3)}
-.staff-info{padding:9px 10px}
-.staff-name{font-size:.76rem;margin-bottom:2px}
-.staff-role{font-size:.6rem;color:var(--text3);margin-bottom:4px}
-.staff-fee{font-size:.66rem;color:var(--gold2)}
 </style>
 </head>
 <body>
@@ -330,36 +309,11 @@ textarea.fi{resize:vertical}
     </div>
   </div>
   <div class="btn-wrap">
-    <button class="btn-p" id="btn-menu" disabled onclick="goStep('nomination')"><span id="t-btn-menu">日程を選択する</span> →</button>
+    <button class="btn-p" id="btn-menu" disabled onclick="goStep('datetime')"><span id="t-btn-menu">日程を選択する</span> →</button>
   </div>
 </div>
 
-<!-- STEP 2: NOMINATION (指名) -->
-<div class="page" id="page-nomination">
-  <div class="prog-wrap" id="prog-nomination"></div>
-  <div class="sec-card">
-    <div class="sec-head"><span class="sec-num">02</span><span class="sec-title" id="t-nom-title">スタッフ指名</span></div>
-    <div class="sec-body">
-      <p style="font-size:.68rem;color:var(--text3);margin-bottom:13px" id="t-nom-hint">ご希望のスタッフを指名できます（任意）</p>
-      <div class="nom-option" id="nom-no" onclick="skipNomination()">
-        <div class="nom-icon">✦</div>
-        <div style="flex:1">
-          <div class="nom-name" id="t-nom-skip">指名しない</div>
-          <div class="nom-sub" id="t-nom-skip-sub">空いているスタッフが担当します • 指名料なし</div>
-        </div>
-        <div class="nom-check"></div>
-      </div>
-      <div id="staff-loading" style="text-align:center;padding:20px;font-size:.72rem;color:var(--text3)">読み込み中...</div>
-      <div id="staff-grid" class="staff-grid" style="display:none"></div>
-    </div>
-  </div>
-  <div class="btn-wrap">
-    <button class="btn-p" id="btn-nom" disabled onclick="goStep('datetime')"><span id="t-btn-nom">日程を選択する</span> →</button>
-    <button class="btn-s" onclick="goStep('menu')">← <span id="t-back-nom">戻る</span></button>
-  </div>
-</div>
-
-<!-- STEP 3: DATE & TIME -->
+<!-- STEP 2: DATE & TIME -->
 <div class="page" id="page-datetime">
   <div class="prog-wrap" id="prog-datetime"></div>
   <div class="sec-card">
@@ -382,7 +336,7 @@ textarea.fi{resize:vertical}
   </div>
   <div class="btn-wrap">
     <button class="btn-p" id="btn-dt" disabled onclick="goStep('location')"><span id="t-btn-dt">場所を選択する</span> →</button>
-    <button class="btn-s" onclick="goStep('nomination')">← <span id="t-back1">戻る</span></button>
+    <button class="btn-s" onclick="goStep('menu')">← <span id="t-back1">戻る</span></button>
   </div>
 </div>
 
@@ -427,7 +381,6 @@ textarea.fi{resize:vertical}
       </div>
       <div class="loc-fields" id="lf3">
         <div class="loc-note" id="t-salon-note">予約完了後、施術場所の住所をご案内いたします。場所は上野駅・御徒町駅から近いレンタルサロンになります。</div>
-        <div id="salon-late-warn" style="display:none;font-size:.64rem;color:var(--text3);margin-top:6px;line-height:1.6">※ 22:00以降のご予約の場合、お店によって貸し出せない場合がございます。その際はご連絡いたします。</div>
         <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=台東区上野4-8-6+プラザUビル3階" target="_blank">
           📍 <span id="t-map-link">Google マップで確認する</span>
         </a>
@@ -517,7 +470,7 @@ textarea.fi{resize:vertical}
       <!-- TERMS (placed under payment) -->
       <div class="divider"></div>
       <p style="font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px" id="t-terms-lbl">利用規約</p>
-      <div class="terms-box">
+      <div class="terms-box" id="terms-box-content">
         <p>・当サービスは本フォームからのご予約のみ受け付けております。SNSのDM・個別連絡でのご予約はお受けしておりません。</p>
         <p>・InstagramまたはThreadsのフォローが必要です。</p>
         <p>・無断キャンセルはできません。</p>
@@ -640,6 +593,7 @@ textarea.fi{resize:vertical}
   </div>
 </div>
 
+<div class="adm-fab" onclick="goPage('page-admin')">⚙</div>
 
 <script>
 // ══════════════════════════════════════
@@ -651,13 +605,6 @@ const IG_HANDLE   = '@YOUR_IG_HANDLE';                   // ← Instagramハン�
 const TH_HANDLE   = '@YOUR_TH_HANDLE';                   // ← Threadsハンドル
 const OUTCALL_FEE = 2200;
 const CUTOFF_HOURS = 4; // 施術開始の何時間前まで受付
-
-// ══════════════════════════════════════
-//  SUPABASE
-// ══════════════════════════════════════
-const SUPABASE_URL      = 'https://icxsapzdbwjzttftjkeg.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImljeHNhcHpkYndqenR0ZnRqa2VnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyNDY4MjAsImV4cCI6MjA5NDgyMjgyMH0.KbIayYtKQCxBUCOIe6wSu7dhl7JjuFM3H1C_MFpL97E';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ══════════════════════════════════════
 //  TRANSLATIONS
@@ -688,6 +635,7 @@ const T = {
     payCashName:'施術前現金払い', payCashDesc:'施術開始前にお支払いください',
     payNotice:'前払い完了後、施術を開始いたします。',
     termsLbl:'利用規約', termsAgree:'利用規約に同意します', termsAgreeEn:'I agree to the Terms & Conditions',
+    termsContent:`<p>・当サービスは本フォームからのご予約のみ受け付けております。SNSのDM・個別連絡でのご予約はお受けしておりません。</p><p>・InstagramまたはThreadsのフォローが必要です。</p><p>・無断キャンセルはできません。</p><p>・当日及び無断キャンセルされた方は、今後のご予約受付をお断りいたします。</p><p>・当日連絡が取れない場合、予約は無効となる場合があります。</p><p>・当店は正規のマッサージ施術のみを提供しております。</p><p>・当日予約は空き枠がない場合がございますので、1日前までのご予約を推奨しております。</p><p>・スタッフに対する不適切行為があった場合、施術を中止し返金不可とします。必要に応じて法的措置を講じます。</p>`,
     btnPay:'予約内容を確認する',
     confTitle:'予約内容確認', totalLbl:'お支払い合計',
     confOutcall:'※ 全メニュー共通：出張費 ¥2,200 が含まれています。',
@@ -699,10 +647,8 @@ const T = {
     notifTh:'Threads リマインダー', notifThDesc:'予約24時間前にThreadsよりご連絡します',
     notifAdmin:'管理者通知', notifAdminDesc:'管理者に予約詳細を通知しました',
     backTop:'トップへ戻る',
-    nomTitle:'スタッフ指名', nomHint:'ご希望のスタッフを指名できます（任意）',
-    nomSkip:'指名しない', nomSkipSub:'空いているスタッフが担当します • 指名料なし',
-    progLabels:['メニュー','指名','日程','場所','情報','支払','確認'],
-    keyMenu:'メニュー', keyDate:'日時', keyLoc:'場所', keyPay:'支払', keyName:'お名前', keyEmail:'Email', keyPhone:'電話', keySocial:'SNS', keyStaff:'担当スタッフ',
+    progLabels:['メニュー','日程','場所','情報','支払','確認'],
+    keyMenu:'メニュー', keyDate:'日時', keyLoc:'場所', keyPay:'支払', keyName:'お名前', keyEmail:'Email', keyPhone:'電話', keySocial:'SNS',
   },
   en:{
     heroSub:'Mobile Massage · Ueno / Asakusa Area', heroCta:'Book Now',
@@ -729,6 +675,7 @@ const T = {
     payCashName:'Cash Before Treatment', payCashDesc:'Please pay before treatment begins',
     payNotice:'Once payment is completed, we will proceed with treatment.',
     termsLbl:'Terms & Conditions', termsAgree:'I agree to the Terms & Conditions', termsAgreeEn:'利用規約に同意します',
+    termsContent:`<p>· Appointments are accepted through this form only. No DMs or direct messages accepted.</p><p>· Following our Instagram or Threads account is required to book.</p><p>· No-shows are strictly prohibited.</p><p>· No-shows or same-day cancellations will result in a permanent booking ban.</p><p>· If we cannot reach you on the day, your booking may be cancelled.</p><p>· We provide legitimate massage therapy services only.</p><p>· Same-day bookings may be unavailable. We recommend booking at least 1 day in advance.</p><p>· Any misconduct toward staff will result in immediate termination of service without refund. Legal action may follow.</p>`,
     btnPay:'Review Reservation',
     confTitle:'Confirm Reservation', totalLbl:'Total',
     confOutcall:'※ Outcall fee of ¥2,200 is included in the total.',
@@ -740,10 +687,8 @@ const T = {
     notifTh:'Threads Reminder', notifThDesc:'We will contact you via Threads 24h before your appointment',
     notifAdmin:'Admin Notified', notifAdminDesc:'Booking details sent to admin',
     backTop:'Back to Top',
-    nomTitle:'Staff Nomination', nomHint:'You can nominate a preferred staff member (optional)',
-    nomSkip:'No Preference', nomSkipSub:'Any available staff will assist you • No nomination fee',
-    progLabels:['Menu','Staff','Date','Location','Info','Payment','Confirm'],
-    keyMenu:'Menu', keyDate:'Date', keyLoc:'Location', keyPay:'Payment', keyName:'Name', keyEmail:'Email', keyPhone:'Phone', keySocial:'SNS', keyStaff:'Staff',
+    progLabels:['Menu','Date','Location','Info','Payment','Confirm'],
+    keyMenu:'Menu', keyDate:'Date', keyLoc:'Location', keyPay:'Payment', keyName:'Name', keyEmail:'Email', keyPhone:'Phone', keySocial:'SNS',
   },
   zh:{
     heroSub:'上野·浅草地区上门按摩', heroCta:'立即预约',
@@ -770,6 +715,7 @@ const T = {
     payCashName:'治疗前现金支付', payCashDesc:'请在治疗开始前支付',
     payNotice:'完成预付款后，我们将开始治疗。',
     termsLbl:'服务条款', termsAgree:'我同意服务条款', termsAgreeEn:'I agree to the Terms & Conditions',
+    termsContent:`<p>· 仅接受通过本表格提交的预约，不接受SNS私信或直接联系预约。</p><p>· 需要关注我们的Instagram或Threads账号。</p><p>· 禁止无故取消预约。</p><p>· 当日无故取消或爽约者将被永久禁止预约。</p><p>· 当日无法联系到您时，预约可能会被取消。</p><p>· 本店仅提供正规按摩服务。</p><p>· 当日预约可能无空位，建议提前至少1天预约。</p><p>· 对工作人员有不当行为者，将立即终止服务且不予退款，并可能采取法律措施。</p>`,
     btnPay:'确认预约',
     confTitle:'确认预约', totalLbl:'总计',
     confOutcall:'※ 总价中已包含 ¥2,200 的上门费。',
@@ -781,10 +727,8 @@ const T = {
     notifTh:'Threads 提醒', notifThDesc:'我们将在预约前24小时通过Threads联系您',
     notifAdmin:'已通知管理员', notifAdminDesc:'预约详情已发送给管理员',
     backTop:'返回顶部',
-    nomTitle:'指定员工', nomHint:'您可以指定您喜欢的员工（可选）',
-    nomSkip:'不指定', nomSkipSub:'将由可用员工为您服务 • 无指定费用',
-    progLabels:['菜单','指定','日期','地点','信息','支付','确认'],
-    keyMenu:'菜单', keyDate:'日期', keyLoc:'地点', keyPay:'支付', keyName:'姓名', keyEmail:'邮箱', keyPhone:'电话', keySocial:'SNS', keyStaff:'员工',
+    progLabels:['菜单','日期','地点','信息','支付','确认'],
+    keyMenu:'菜单', keyDate:'日期', keyLoc:'地点', keyPay:'支付', keyName:'姓名', keyEmail:'邮箱', keyPhone:'电话', keySocial:'SNS',
   },
   es:{
     heroSub:'Masaje a domicilio · Área Ueno / Asakusa', heroCta:'Reservar Ahora',
@@ -811,6 +755,7 @@ const T = {
     payCashName:'Efectivo Antes del Tratamiento', payCashDesc:'Por favor pague antes de comenzar',
     payNotice:'Una vez completado el pago, procederemos con el tratamiento.',
     termsLbl:'Términos y Condiciones', termsAgree:'Acepto los Términos y Condiciones', termsAgreeEn:'利用規約に同意します',
+    termsContent:`<p>· Solo se aceptan reservas a través de este formulario. No se aceptan DMs ni contacto directo.</p><p>· Es obligatorio seguir nuestra cuenta de Instagram o Threads.</p><p>· Las cancelaciones sin aviso están estrictamente prohibidas.</p><p>· Las no-presentaciones o cancelaciones el mismo día resultarán en prohibición permanente.</p><p>· Si no podemos contactarle el día del servicio, su reserva puede ser cancelada.</p><p>· Solo ofrecemos servicios de masaje legítimos.</p><p>· Las reservas del mismo día pueden no estar disponibles. Recomendamos reservar con al menos 1 día de antelación.</p><p>· Cualquier conducta inapropiada hacia el personal resultará en la terminación inmediata sin reembolso y posibles acciones legales.</p>`,
     btnPay:'Revisar Reserva',
     confTitle:'Confirmar Reserva', totalLbl:'Total',
     confOutcall:'※ El cargo por desplazamiento de ¥2,200 está incluido.',
@@ -822,10 +767,8 @@ const T = {
     notifTh:'Recordatorio Threads', notifThDesc:'Le contactaremos por Threads 24h antes',
     notifAdmin:'Admin Notificado', notifAdminDesc:'Detalles de reserva enviados al administrador',
     backTop:'Volver al Inicio',
-    nomTitle:'Elección de Terapeuta', nomHint:'Puede elegir un terapeuta preferido (opcional)',
-    nomSkip:'Sin Preferencia', nomSkipSub:'Cualquier terapeuta disponible le atenderá • Sin cargo adicional',
-    progLabels:['Menú','Staff','Fecha','Lugar','Info','Pago','Confirmar'],
-    keyMenu:'Menú', keyDate:'Fecha', keyLoc:'Lugar', keyPay:'Pago', keyName:'Nombre', keyEmail:'Email', keyPhone:'Tel', keySocial:'SNS', keyStaff:'Terapeuta',
+    progLabels:['Menú','Fecha','Lugar','Info','Pago','Confirmar'],
+    keyMenu:'Menú', keyDate:'Fecha', keyLoc:'Lugar', keyPay:'Pago', keyName:'Nombre', keyEmail:'Email', keyPhone:'Tel', keySocial:'SNS',
   },
   fr:{
     heroSub:'Massage à domicile · Quartier Ueno / Asakusa', heroCta:'Réserver',
@@ -852,6 +795,7 @@ const T = {
     payCashName:'Espèces Avant le Soin', payCashDesc:'Veuillez payer avant le début du soin',
     payNotice:'Une fois le paiement effectué, nous procéderons au soin.',
     termsLbl:'Conditions Générales', termsAgree:'J\'accepte les Conditions Générales', termsAgreeEn:'I agree to the Terms & Conditions',
+    termsContent:`<p>· Les réservations sont uniquement acceptées via ce formulaire. Aucun DM ou contact direct accepté.</p><p>· Suivre notre compte Instagram ou Threads est obligatoire.</p><p>· Les annulations sans préavis sont strictement interdites.</p><p>· Les no-shows ou annulations le jour même entraîneront une interdiction permanente.</p><p>· Si nous ne pouvons pas vous joindre le jour J, votre réservation peut être annulée.</p><p>· Nous proposons uniquement des services de massage légitimes.</p><p>· Les réservations du jour même peuvent être indisponibles. Nous recommandons de réserver au moins 1 jour à l'avance.</p><p>· Tout comportement inapproprié envers le personnel entraînera l'arrêt immédiat du service sans remboursement et des poursuites judiciaires éventuelles.</p>`,
     btnPay:'Vérifier la Réservation',
     confTitle:'Confirmer la Réservation', totalLbl:'Total',
     confOutcall:'※ Les frais de déplacement de ¥2,200 sont inclus.',
@@ -863,10 +807,8 @@ const T = {
     notifTh:'Rappel Threads', notifThDesc:'Nous vous contacterons via Threads 24h avant',
     notifAdmin:'Admin Notifié', notifAdminDesc:'Détails de réservation envoyés à l\'admin',
     backTop:'Retour en Haut',
-    nomTitle:'Choix du Thérapeute', nomHint:'Vous pouvez choisir un thérapeute préféré (optionnel)',
-    nomSkip:'Aucune Préférence', nomSkipSub:'Tout thérapeute disponible vous assistera • Sans frais supplémentaires',
-    progLabels:['Menu','Staff','Date','Lieu','Info','Paiement','Confirmer'],
-    keyMenu:'Menu', keyDate:'Date', keyLoc:'Lieu', keyPay:'Paiement', keyName:'Nom', keyEmail:'Email', keyPhone:'Tél', keySocial:'SNS', keyStaff:'Thérapeute',
+    progLabels:['Menu','Date','Lieu','Info','Paiement','Confirmer'],
+    keyMenu:'Menu', keyDate:'Date', keyLoc:'Lieu', keyPay:'Paiement', keyName:'Nom', keyEmail:'Email', keyPhone:'Tél', keySocial:'SNS',
   },
   de:{
     heroSub:'Mobile Massage · Ueno / Asakusa', heroCta:'Jetzt Buchen',
@@ -893,6 +835,7 @@ const T = {
     payCashName:'Barzahlung vor der Behandlung', payCashDesc:'Bitte vor Beginn der Behandlung bezahlen',
     payNotice:'Nach Abschluss der Zahlung beginnen wir mit der Behandlung.',
     termsLbl:'Allgemeine Geschäftsbedingungen', termsAgree:'Ich stimme den AGB zu', termsAgreeEn:'I agree to the Terms & Conditions',
+    termsContent:`<p>· Buchungen werden nur über dieses Formular akzeptiert. Keine DMs oder direkten Nachrichten.</p><p>· Das Folgen unseres Instagram- oder Threads-Kontos ist erforderlich.</p><p>· Unentschuldigtes Nichterscheinen ist streng verboten.</p><p>· No-Shows oder Absagen am selben Tag führen zu einem dauerhaften Buchungsverbot.</p><p>· Wenn wir Sie am Buchungstag nicht erreichen können, kann Ihre Buchung storniert werden.</p><p>· Wir bieten ausschließlich legitime Massagedienstleistungen an.</p><p>· Buchungen am selben Tag können nicht verfügbar sein. Wir empfehlen, mindestens 1 Tag im Voraus zu buchen.</p><p>· Unangemessenes Verhalten gegenüber dem Personal führt zur sofortigen Beendigung ohne Rückerstattung und möglichen rechtlichen Schritten.</p>`,
     btnPay:'Buchung Überprüfen',
     confTitle:'Buchung Bestätigen', totalLbl:'Gesamt',
     confOutcall:'※ Der Aufpreis von ¥2.200 ist im Gesamtpreis enthalten.',
@@ -904,10 +847,8 @@ const T = {
     notifTh:'Threads-Erinnerung', notifThDesc:'Wir melden uns 24h vorher per Threads',
     notifAdmin:'Admin benachrichtigt', notifAdminDesc:'Buchungsdetails wurden an Admin gesendet',
     backTop:'Zurück zum Anfang',
-    nomTitle:'Therapeuten Wählen', nomHint:'Sie können einen bevorzugten Therapeuten wählen (optional)',
-    nomSkip:'Keine Präferenz', nomSkipSub:'Ein verfügbarer Therapeut wird Ihnen helfen • Kein Aufpreis',
-    progLabels:['Menü','Staff','Datum','Ort','Info','Zahlung','Bestätigen'],
-    keyMenu:'Menü', keyDate:'Datum', keyLoc:'Ort', keyPay:'Zahlung', keyName:'Name', keyEmail:'E-Mail', keyPhone:'Tel', keySocial:'SNS', keyStaff:'Therapeut',
+    progLabels:['Menü','Datum','Ort','Info','Zahlung','Bestätigen'],
+    keyMenu:'Menü', keyDate:'Datum', keyLoc:'Ort', keyPay:'Zahlung', keyName:'Name', keyEmail:'E-Mail', keyPhone:'Tel', keySocial:'SNS',
   },
   hi:{
     heroSub:'मोबाइल मसाज · उएनो / असाकुसा', heroCta:'अभी बुक करें',
@@ -934,6 +875,7 @@ const T = {
     payCashName:'उपचार से पहले नकद', payCashDesc:'उपचार शुरू होने से पहले भुगतान करें',
     payNotice:'भुगतान पूरा होने के बाद उपचार शुरू होगा।',
     termsLbl:'नियम और शर्तें', termsAgree:'मैं नियम और शर्तों से सहमत हूं', termsAgreeEn:'I agree to the Terms & Conditions',
+    termsContent:`<p>· बुकिंग केवल इस फॉर्म के माध्यम से स्वीकार की जाती है। DM या सीधे संपर्क स्वीकार नहीं किए जाते।</p><p>· हमारे Instagram या Threads अकाउंट को फॉलो करना आवश्यक है।</p><p>· बिना सूचना के न आना सख्त मना है।</p><p>· No-show या उसी दिन रद्दीकरण पर स्थायी प्रतिबंध लगाया जाएगा।</p><p>· यदि उपचार के दिन हम आपसे संपर्क नहीं कर पाए तो बुकिंग रद्द हो सकती है।</p><p>· हम केवल वैध मसाज सेवाएं प्रदान करते हैं।</p><p>· उसी दिन की बुकिंग उपलब्ध नहीं हो सकती। कम से कम 1 दिन पहले बुक करने की सलाह दी जाती है।</p><p>· स्टाफ के साथ अनुचित व्यवहार पर तुरंत सेवा समाप्त की जाएगी, धनवापसी नहीं होगी और कानूनी कार्रवाई हो सकती है।</p>`,
     btnPay:'बुकिंग देखें',
     confTitle:'बुकिंग की पुष्टि करें', totalLbl:'कुल',
     confOutcall:'※ ¥2,200 आउटकॉल शुल्क कुल में शामिल है।',
@@ -945,10 +887,8 @@ const T = {
     notifTh:'Threads रिमाइंडर', notifThDesc:'हम 24 घंटे पहले Threads पर संपर्क करेंगे',
     notifAdmin:'एडमिन को सूचित किया', notifAdminDesc:'बुकिंग विवरण एडमिन को भेजा गया',
     backTop:'शीर्ष पर वापस जाएं',
-    nomTitle:'थेरेपिस्ट चुनें', nomHint:'आप पसंदीदा थेरेपिस्ट चुन सकते हैं (वैकल्पिक)',
-    nomSkip:'कोई प्राथमिकता नहीं', nomSkipSub:'कोई भी उपलब्ध थेरेपिस्ट आपकी सेवा करेगा • कोई अतिरिक्त शुल्क नहीं',
-    progLabels:['मेनू','स्टाफ','तारीख','स्थान','जानकारी','भुगतान','पुष्टि'],
-    keyMenu:'मेनू', keyDate:'तारीख', keyLoc:'स्थान', keyPay:'भुगतान', keyName:'नाम', keyEmail:'ईमेल', keyPhone:'फोन', keySocial:'SNS', keyStaff:'थेरेपिस्ट',
+    progLabels:['मेनू','तारीख','स्थान','जानकारी','भुगतान','पुष्टि'],
+    keyMenu:'मेनू', keyDate:'तारीख', keyLoc:'स्थान', keyPay:'भुगतान', keyName:'नाम', keyEmail:'ईमेल', keyPhone:'फोन', keySocial:'SNS',
   }
 };
 
@@ -961,10 +901,9 @@ let stripe    = null;
 let cardEl    = null;
 let cardReady = false;
 let termsOk   = false;
-let booking   = { menu:null, date:null, time:null, location:null, locDetail:{}, payment:null, customer:{}, terms:false, staff:null, nominationFee:0 };
+let booking   = { menu:null, date:null, time:null, location:null, locDetail:{}, payment:null, customer:{}, terms:false };
 let reservations = JSON.parse(localStorage.getItem('uzm_res') || '[]');
 let blocked      = JSON.parse(localStorage.getItem('uzm_blk') || '{}');
-let staffCache   = [];
 
 // Real-time slot refresh
 let slotRefreshTimer = null;
@@ -989,9 +928,6 @@ function applyTranslations() {
   set('t-menu-title', t.menuTitle); set('t-menu-hint', t.menuHint); set('t-outcall', '※ '+t.outcall.replace('※ ',''));
   set('t-cat1', t.cat1); set('t-cat2', t.cat2); set('t-cat3', t.cat3); set('t-cat4', t.cat4);
   set('t-btn-menu', t.btnMenu);
-  set('t-nom-title', t.nomTitle); set('t-nom-hint', t.nomHint);
-  set('t-nom-skip', t.nomSkip); set('t-nom-skip-sub', t.nomSkipSub);
-  set('t-btn-nom', t.btnMenu); set('t-back-nom', t.back);
   set('t-dt-title', t.dtTitle); set('t-time-hint', t.timeHint); set('t-time-legend', t.timeLegend);
   set('t-btn-dt', t.btnDt); set('t-back1', t.back); set('t-back2', t.back); set('t-back3', t.back); set('t-back4', t.back); set('t-back5', t.back);
   set('t-loc-title', t.locTitle);
@@ -1010,6 +946,7 @@ function applyTranslations() {
   set('t-pay-cash-name', t.payCashName); set('t-pay-cash-desc', t.payCashDesc);
   set('t-pay-notice', t.payNotice);
   set('t-terms-lbl', t.termsLbl); set('t-terms-agree', t.termsAgree); set('t-terms-agree-en', t.termsAgreeEn);
+  if (t.termsContent) document.getElementById('terms-box-content').innerHTML = t.termsContent;
   set('t-btn-pay', t.btnPay);
   set('t-conf-title', t.confTitle); set('t-total-lbl', t.totalLbl); set('t-conf-outcall', t.confOutcall);
   set('t-btn-submit', t.btnSubmit);
@@ -1032,14 +969,12 @@ function goPage(id) {
 }
 function startBooking() { goPage('page-menu'); renderProg('menu'); }
 
-const STEPS = ['menu','nomination','datetime','location','customer','payment','confirm'];
+const STEPS = ['menu','datetime','location','customer','payment','confirm'];
 
 function goStep(step) {
   if (step === 'confirm') buildConfirm();
   if (step === 'datetime') { renderCal(); startSlotRefresh(); }
   if (step === 'payment' && !cardEl) initStripe();
-  if (step === 'nomination') loadStaff();
-  if (step === 'location') checkLateWarn();
   goPage('page-' + step);
   renderProg(step);
 }
@@ -1073,73 +1008,6 @@ function selectMenu(el, num, dur, price, nameEn, nameJa) {
   booking.menu = { num, dur, price, nameEn, nameJa };
   booking.date = null; booking.time = null;
   document.getElementById('btn-menu').disabled = false;
-}
-
-// ══════════════════════════════════════
-//  NOMINATION
-// ══════════════════════════════════════
-async function loadStaff() {
-  const loadEl = document.getElementById('staff-loading');
-  const gridEl = document.getElementById('staff-grid');
-  loadEl.style.display = 'block'; gridEl.style.display = 'none';
-  try {
-    const { data, error } = await sb.from('staff').select('*').eq('is_active', true).order('display_order');
-    if (error) throw error;
-    staffCache = data || [];
-    loadEl.style.display = 'none'; gridEl.style.display = 'grid';
-    renderStaffList(staffCache);
-  } catch(e) {
-    loadEl.textContent = 'スタッフ情報を読み込めませんでした';
-  }
-}
-
-function renderStaffList(list) {
-  const grid = document.getElementById('staff-grid');
-  if (!list.length) {
-    grid.innerHTML = '<p style="font-size:.72rem;color:var(--text3);grid-column:1/-1">現在登録中のスタッフがいません</p>';
-  } else {
-    grid.innerHTML = list.map(s => {
-      const url = s.photo_url || s.avatar_url || s.image_url || s.photo || '';
-      const img = url ? `<img class="staff-photo" src="${url}" alt="${s.name}" loading="lazy">`
-                      : `<div class="staff-photo-ph">${s.name.charAt(0)}</div>`;
-      return `<div class="staff-card" id="sc-${s.id}" onclick="selectStaff('${s.id}')">
-        ${img}
-        <div class="staff-info">
-          <div class="staff-name">${s.name}</div>
-          <div class="staff-role">${s.job_title||''}</div>
-          <div class="staff-fee">+ ¥${(s.nomination_fee||1000).toLocaleString()}</div>
-        </div>
-      </div>`;
-    }).join('');
-  }
-  // Restore previous selection
-  if (booking.staff) {
-    document.getElementById('sc-' + booking.staff.id)?.classList.add('selected');
-    document.getElementById('btn-nom').disabled = false;
-  } else if (!document.getElementById('btn-nom').disabled) {
-    document.getElementById('nom-no').classList.add('selected');
-  }
-}
-
-function selectStaff(staffId) {
-  const s = staffCache.find(x => String(x.id) === String(staffId));
-  if (!s) return;
-  booking.staff = s;
-  booking.nominationFee = s.nomination_fee || 1000;
-  booking.date = null; booking.time = null;
-  document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('sc-' + staffId)?.classList.add('selected');
-  document.getElementById('nom-no').classList.remove('selected');
-  document.getElementById('btn-nom').disabled = false;
-}
-
-function skipNomination() {
-  booking.staff = null;
-  booking.nominationFee = 0;
-  booking.date = null; booking.time = null;
-  document.querySelectorAll('.staff-card').forEach(c => c.classList.remove('selected'));
-  document.getElementById('nom-no').classList.add('selected');
-  document.getElementById('btn-nom').disabled = false;
 }
 
 // ══════════════════════════════════════
@@ -1185,34 +1053,15 @@ function startSlotRefresh() {
   }, 60000); // refresh every 60s
 }
 
-async function renderTimeSlots() {
+function renderTimeSlots() {
   if (!booking.date || !booking.menu) return;
   const grid = document.getElementById('time-grid');
-  grid.innerHTML = '<div style="font-size:.7rem;color:var(--text3);padding:10px;grid-column:1/-1">読み込み中...</div>';
-
-  const dk  = booking.date.toISOString().split('T')[0];
-  const dur = booking.menu.dur;
-
-  // Fetch booked slots from Supabase
-  let bookedSlots = [];
-  try {
-    const { data } = await sb.from('bookings').select('time_slot,duration_min').eq('date', dk).neq('status','cancelled');
-    if (data) bookedSlots = data.map(r => ({ s: t2m(r.time_slot), d: r.duration_min }));
-  } catch(e) {
-    bookedSlots = reservations.filter(r => r.date === dk).map(r => ({ s: t2m(r.time), d: r.dur }));
-  }
-
-  // Fetch staff shifts if nominated
-  let staffShifts = null;
-  if (booking.staff) {
-    try {
-      const { data: shifts } = await sb.from('staff_shifts').select('start_time,end_time').eq('staff_id', booking.staff.id).eq('date', dk);
-      staffShifts = shifts || [];
-    } catch(e) { staffShifts = []; }
-  }
-
   grid.innerHTML = '';
+  const dur = booking.menu.dur;
+  const dk  = booking.date.toISOString().split('T')[0];
   const blkd = blocked[dk] || [];
+  const booked = reservations.filter(r => r.date === dk).map(r => ({ s: t2m(r.time), d: r.dur }));
+
   const now = new Date();
   const isToday = booking.date.toDateString() === now.toDateString();
 
@@ -1223,27 +1072,24 @@ async function renderTimeSlots() {
       const em  = sm + dur;
       if (em > 21*60) return;
 
+      // 4-hour cutoff check
       let tooSoon = false;
       if (isToday) {
         const nowMins = now.getHours()*60 + now.getMinutes();
         if (sm - nowMins < CUTOFF_HOURS * 60) tooSoon = true;
       }
 
-      const isBlk     = blkd.includes(lbl);
-      const isBkd     = bookedSlots.some(b => sm < b.s + b.d && em > b.s);
-      const outOfShift = staffShifts && staffShifts.length > 0
-        ? !staffShifts.some(sh => t2m(sh.start_time) <= sm && t2m(sh.end_time) >= em)
-        : false;
-      const unavail   = isBlk || isBkd || tooSoon || outOfShift;
+      const isBlk  = blkd.includes(lbl);
+      const isBkd  = booked.some(b => sm < b.s + b.d && em > b.s);
+      const unavail = isBlk || isBkd || tooSoon;
 
       const div = document.createElement('div');
-      if (outOfShift)  div.className = 'ts bkd';
-      else if (tooSoon) div.className = 'ts soon';
+      if (tooSoon)     div.className = 'ts soon';
       else if (isBlk)  div.className = 'ts blk';
       else if (isBkd)  div.className = 'ts bkd';
       else             div.className = 'ts';
 
-      div.textContent = (isBkd || outOfShift) ? `${lbl} ×` : tooSoon ? `${lbl} ―` : lbl;
+      div.textContent = isBkd ? `${lbl} ×` : tooSoon ? `${lbl} ―` : lbl;
 
       if (!unavail) {
         div.onclick = () => {
@@ -1256,23 +1102,14 @@ async function renderTimeSlots() {
       grid.appendChild(div);
     });
   }
-  const nomNote = booking.nominationFee > 0 ? ` + 指名料 ¥${booking.nominationFee.toLocaleString()}` : '';
   document.getElementById('menu-display').textContent =
-    `${lang==='ja'?booking.menu.nameJa:booking.menu.nameEn} ${booking.menu.dur}min — ¥${booking.menu.price.toLocaleString()} + ¥${OUTCALL_FEE.toLocaleString()}${nomNote}`;
+    `${lang==='ja'?booking.menu.nameJa:booking.menu.nameEn} ${booking.menu.dur}min — ¥${booking.menu.price.toLocaleString()} + ¥${OUTCALL_FEE.toLocaleString()}`;
 }
 function t2m(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
 
 // ══════════════════════════════════════
 //  LOCATION
 // ══════════════════════════════════════
-function checkLateWarn() {
-  const warn = document.getElementById('salon-late-warn');
-  if (!warn) return;
-  const isLate = booking.time && parseInt(booking.time.split(':')[0]) >= 22;
-  const isSalon = booking.location === 3;
-  warn.style.display = (isLate && isSalon) ? 'block' : 'none';
-}
-
 function selectLoc(n) {
   [1,2,3].forEach(i => {
     document.getElementById('loc'+i).classList.toggle('selected', i===n);
@@ -1280,7 +1117,6 @@ function selectLoc(n) {
   });
   booking.location = n; booking.locDetail = {};
   valLoc();
-  checkLateWarn();
 }
 function valLoc() {
   if (!booking.location) { document.getElementById('btn-loc').disabled = true; return; }
@@ -1406,7 +1242,7 @@ function _stripeGuide() {
 //  CONFIRM
 // ══════════════════════════════════════
 function buildConfirm() {
-  const m = booking.menu, total = m.price + OUTCALL_FEE + booking.nominationFee;
+  const m = booking.menu, total = m.price + OUTCALL_FEE;
   const t = T[lang];
   const ds = booking.date ? `${booking.date.getFullYear()}/${booking.date.getMonth()+1}/${booking.date.getDate()} ${booking.time}` : '—';
   const lmap = { 1: t.loc1, 2: t.loc2, 3: t.loc3 };
@@ -1425,13 +1261,10 @@ function buildConfirm() {
     [t.keyPhone, booking.customer.phone],
     [t.keySocial,booking.customer.social],
   ];
-  if (booking.staff) rows.splice(1, 0, [t.keyStaff||'担当スタッフ', `${booking.staff.name} (+¥${booking.nominationFee.toLocaleString()})`]);
   document.getElementById('conf-table').innerHTML =
     rows.map(([k,v]) => `<div class="conf-row"><span class="conf-key">${k}</span><span class="conf-val">${v}</span></div>`).join('');
   document.getElementById('conf-amt').textContent = `¥${total.toLocaleString()}`;
-  document.getElementById('conf-bd').textContent  = booking.nominationFee > 0
-    ? `¥${m.price.toLocaleString()} + ¥${OUTCALL_FEE.toLocaleString()} + 指名料 ¥${booking.nominationFee.toLocaleString()}`
-    : `¥${m.price.toLocaleString()} + ¥${OUTCALL_FEE.toLocaleString()}`;
+  document.getElementById('conf-bd').textContent  = `¥${m.price.toLocaleString()} + ¥${OUTCALL_FEE.toLocaleString()}`;
 }
 
 // ══════════════════════════════════════
@@ -1444,7 +1277,7 @@ async function submitRes() {
   btn.disabled = true; btn.classList.add('loading'); spin.style.display = 'block';
   txt.textContent = lang==='ja' ? '処理中...' : 'Processing...';
 
-  const total    = booking.menu.price + OUTCALL_FEE + booking.nominationFee;
+  const total    = booking.menu.price + OUTCALL_FEE;
   const fullName = `${booking.customer.last} ${booking.customer.first}`;
   const desc     = `${booking.menu.nameJa} ${booking.menu.dur}min — ${booking.date.toISOString().split('T')[0]} ${booking.time}`;
 
@@ -1489,43 +1322,44 @@ async function submitRes() {
       await new Promise(r => setTimeout(r, 1200));
     }
 
-    // Save
-    const id = 'UZM-' + Date.now().toString(36).toUpperCase();
+    // Save to Supabase
+    const dateStr = booking.date.toISOString().split('T')[0];
+    const bookingNum = 'UZM-' + Date.now().toString(36).toUpperCase();
+    const locType = booking.location === 1 ? 'hotel' : booking.location === 2 ? 'home' : 'salon';
+    await fetch('/api/save-booking', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bookingNumber:   bookingNum,
+        menuName:        booking.menu.nameJa,
+        durationMin:     booking.menu.dur,
+        price:           booking.menu.price,
+        total:           total,
+        locationType:    locType,
+        hotelName:       booking.locDetail.hotel   || null,
+        roomNumber:      booking.locDetail.room     || null,
+        address:         booking.locDetail.address  || null,
+        date:            dateStr,
+        timeSlot:        booking.time,
+        firstName:       booking.customer.first,
+        lastName:        booking.customer.last,
+        email:           booking.customer.email,
+        phone:           booking.customer.phone,
+        snsId:           booking.customer.social   || null,
+        notes:           booking.customer.notes    || null,
+        paymentMethod:   booking.payment,
+        language:        lang,
+        nominationFee:   0,
+      }),
+    }).catch(e => console.warn('Supabase保存エラー:', e));
+
+    // Save to localStorage (バックアップ)
     const res = {
-      id, date: booking.date.toISOString().split('T')[0], time: booking.time,
+      id: bookingNum, date: dateStr, time: booking.time,
       dur: booking.menu.dur, menu: booking.menu, location: booking.location,
       locDetail: booking.locDetail, payment: booking.payment,
       customer: booking.customer, total, status:'confirmed',
       createdAt: new Date().toISOString(),
     };
-    // Save to Supabase
-    try {
-      await sb.from('bookings').insert({
-        booking_number:  id,
-        status:          booking.payment === 'card' ? 'confirmed' : 'pending',
-        menu_name:       booking.menu.nameEn,
-        duration_min:    booking.menu.dur,
-        price:           booking.menu.price,
-        location_type:   ['hotel','home','salon'][booking.location-1],
-        hotel_name:      booking.locDetail.hotel   || null,
-        room_number:     booking.locDetail.room    || booking.locDetail.room2 || null,
-        address:         booking.locDetail.address || null,
-        date:            booking.date.toISOString().split('T')[0],
-        time_slot:       booking.time,
-        first_name:      booking.customer.first,
-        last_name:       booking.customer.last,
-        email:           booking.customer.email,
-        phone:           booking.customer.phone,
-        sns_id:          booking.customer.social,
-        notes:           booking.customer.notes || null,
-        payment_method:  booking.payment,
-        language:        lang,
-        total:           total,
-        staff_id:        booking.staff ? booking.staff.id : null,
-        nomination_fee:  booking.nominationFee,
-      });
-    } catch(sbErr) { console.warn('Supabase save error:', sbErr.message); }
-    // Fallback localStorage
     reservations.push(res);
     localStorage.setItem('uzm_res', JSON.stringify(reservations));
     clearInterval(slotRefreshTimer);
@@ -1644,4 +1478,3 @@ applyTranslations();
 -->
 </body>
 </html>
-

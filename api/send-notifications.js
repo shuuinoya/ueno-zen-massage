@@ -1,36 +1,29 @@
-// api/send-notifications.js
-// Vercel Serverless Function — 予約完了メール送信（SendGrid）
-//
-// 環境変数（Vercel Dashboard → Settings → Environment Variables）:
-//   SENDGRID_API_KEY = SG.XXXXXXXXXXXXXXXXXX
-//   OWNER_EMAIL      = your@email.com
-//   FROM_EMAIL       = noreply@yourdomain.com  ← SendGridで認証済みのメール
+// api/send-notifications.js — Resend でメール送信
+// Vercel環境変数:
+//   RESEND_API_KEY = re_XXXXXXXXXX  （resend.com で取得）
+//   OWNER_EMAIL    = あなたのメールアドレス
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (!process.env.SENDGRID_API_KEY) {
-    // SendGrid未設定でも予約は完了させる（通知のみスキップ）
-    console.warn('SENDGRID_API_KEY が未設定のため通知をスキップします');
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY が未設定のため通知をスキップします');
     return res.status(200).json({ ok: true, skipped: true });
   }
 
   const {
-    customerEmail, ownerEmail, customerSocial,
+    customerEmail, customerSocial,
     name, service, date, time, total, payment, paymentId, lang
   } = req.body;
 
-  const FROM  = process.env.FROM_EMAIL  || process.env.OWNER_EMAIL;
-  const OWNER = process.env.OWNER_EMAIL || ownerEmail;
-
-  // ── メール本文テンプレート ──────────────────────────────────────
-  const subject_ja = `【予約確認】${name} 様 / ${date} ${time}`;
-  const subject_en = `[Booking Confirmed] ${name} / ${date} ${time}`;
+  const OWNER = process.env.OWNER_EMAIL || 'kudaka.1228@gmail.com';
+  // Resendの無料プランでは onboarding@resend.dev から送信可能
+  // 独自ドメインがあれば FROM_EMAIL 環境変数で上書き
+  const FROM = process.env.FROM_EMAIL || 'UENO ZEN MASSAGE <onboarding@resend.dev>';
 
   const customerHtml = `
 <!DOCTYPE html>
@@ -51,8 +44,6 @@ export default async function handler(req, res) {
   .total-lbl{font-size:.72rem;color:#888;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
   .total-amt{font-size:1.6rem;color:#b8965a;font-weight:300}
   .reminder{background:#f0f7f0;border-left:3px solid #4a9e74;padding:12px 16px;font-size:.8rem;color:#555;margin:16px 0;line-height:1.7}
-  .social{text-align:center;margin-top:20px}
-  .social a{display:inline-block;margin:0 6px;padding:8px 16px;border:1px solid #e0e0e0;border-radius:20px;font-size:.76rem;color:#555;text-decoration:none}
   .ft{background:#f5f5f5;padding:16px 32px;text-align:center;font-size:.72rem;color:#aaa}
 </style></head>
 <body>
@@ -76,10 +67,6 @@ export default async function handler(req, res) {
       ⏰ <strong>リマインダー</strong><br>
       ご予約の24時間前に Instagram / Threads よりご連絡いたします。<br>
       We will remind you 24 hours before via Instagram / Threads.
-    </div>
-    <div class="social">
-      <a href="https://instagram.com/YOUR_HANDLE">📸 Instagram</a>
-      <a href="https://threads.net/@YOUR_HANDLE">🧵 Threads</a>
     </div>
     <p style="font-size:.78rem;color:#888;margin-top:20px;line-height:1.7">
       ご不明な点はInstagramまたはThreadsよりお問い合わせください。<br>
@@ -136,41 +123,32 @@ export default async function handler(req, res) {
 </div>
 </body></html>`;
 
-  // ── SendGrid API 呼び出し ──────────────────────────────────────
   const sendEmail = async (to, subject, html) => {
-    const r = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email: to }] }],
-        from: { email: FROM, name: 'UENO ZEN MASSAGE' },
-        subject,
-        content: [{ type: 'text/html', value: html }],
-      }),
+      body: JSON.stringify({ from: FROM, to: [to], subject, html }),
     });
     if (!r.ok) {
-      const errTxt = await r.text();
-      throw new Error(`SendGrid error: ${r.status} — ${errTxt}`);
+      const err = await r.text();
+      throw new Error(`Resend error: ${r.status} — ${err}`);
     }
   };
 
   try {
-    const subject = lang === 'ja' ? subject_ja : subject_en;
+    const subjectCustomer = lang === 'ja'
+      ? `【予約確認】${name} 様 / ${date} ${time}`
+      : `[Booking Confirmed] ${name} / ${date} ${time}`;
 
-    // ① お客様へ確認メール
-    await sendEmail(customerEmail, subject, customerHtml);
-
-    // ② 管理者へ通知メール
+    await sendEmail(customerEmail, subjectCustomer, customerHtml);
     await sendEmail(OWNER, `【新規予約】${name} / ${date} ${time}`, ownerHtml);
 
     return res.status(200).json({ ok: true });
-
   } catch (err) {
-    console.error('SendGrid error:', err);
-    // メール失敗でも予約自体は完了扱いにする
+    console.error('Resend error:', err);
     return res.status(200).json({ ok: true, emailError: err.message });
   }
 }
