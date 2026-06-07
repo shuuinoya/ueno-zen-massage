@@ -413,6 +413,13 @@ textarea.fi{resize:vertical}
   <div class="sec-card">
     <div class="sec-head"><span class="sec-num">04</span><span class="sec-title" id="t-cust-title">お客様情報</span></div>
     <div class="sec-body">
+      <!-- リピーター自動入力バナー -->
+      <div id="repeat-banner" style="display:none;background:linear-gradient(135deg,#faf7f2,#f5efe0);border:1px solid #e8d9c0;border-radius:6px;padding:12px 14px;margin-bottom:14px;display:none">
+        <div style="font-size:.78rem;color:#b8965a;font-weight:700;margin-bottom:4px">👋 おかえりなさい！</div>
+        <div style="font-size:.72rem;color:#888;margin-bottom:10px" id="repeat-name-hint"></div>
+        <button onclick="fillRepeatCustomer()" style="width:100%;padding:9px;background:#b8965a;border:none;border-radius:5px;color:#fff;font-size:.78rem;font-weight:700;cursor:pointer">前回の情報を自動入力する</button>
+        <button onclick="document.getElementById('repeat-banner').style.display='none'" style="width:100%;margin-top:6px;padding:7px;background:none;border:1px solid #ddd;border-radius:5px;color:#aaa;font-size:.72rem;cursor:pointer">新しく入力する</button>
+      </div>
       <div class="form-row">
         <div class="fg"><label class="fl" id="t-last-lbl">姓 *</label><input class="fi" id="c-last" oninput="valCust()"></div>
         <div class="fg"><label class="fl" id="t-first-lbl">名 *</label><input class="fi" id="c-first" oninput="valCust()"></div>
@@ -975,8 +982,35 @@ function goStep(step) {
   if (step === 'confirm') buildConfirm();
   if (step === 'datetime') { renderCal(); startSlotRefresh(); }
   if (step === 'payment' && !cardEl) initStripe();
+  if (step === 'customer') showRepeatBanner();
   goPage('page-' + step);
   renderProg(step);
+}
+
+function showRepeatBanner() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('uzm_customer') || 'null');
+    if (!saved || !saved.last || !saved.email) return;
+    const banner = document.getElementById('repeat-banner');
+    document.getElementById('repeat-name-hint').textContent =
+      `${saved.last} ${saved.first} 様（${saved.email}）`;
+    banner.style.display = 'block';
+  } catch(e) {}
+}
+
+function fillRepeatCustomer() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('uzm_customer') || 'null');
+    if (!saved) return;
+    document.getElementById('c-last').value   = saved.last   || '';
+    document.getElementById('c-first').value  = saved.first  || '';
+    document.getElementById('c-email').value  = saved.email  || '';
+    document.getElementById('c-phone').value  = saved.phone  || '';
+    document.getElementById('c-social').value = saved.social || '';
+    document.getElementById('c-notes').value  = '';
+    document.getElementById('repeat-banner').style.display = 'none';
+    valCust();
+  } catch(e) {}
 }
 
 // ══════════════════════════════════════
@@ -1386,6 +1420,14 @@ async function submitRes() {
     };
     reservations.push(res);
     localStorage.setItem('uzm_res', JSON.stringify(reservations));
+    // リピーター用に個人情報を保存
+    localStorage.setItem('uzm_customer', JSON.stringify({
+      last:   booking.customer.last,
+      first:  booking.customer.first,
+      email:  booking.customer.email,
+      phone:  booking.customer.phone,
+      social: booking.customer.social,
+    }));
     clearInterval(slotRefreshTimer);
     showSuccess(res);
 
