@@ -1301,12 +1301,11 @@ async function submitRes() {
       if (error) throw new Error(error.message);
       if (paymentIntent.status !== 'succeeded') throw new Error('決済が完了しませんでした。カード情報をご確認ください。');
 
-      // ── STEP 3: メール・SNS通知 ──
+      // ── STEP 3: メール通知（カード）──
       await fetch('/api/send-notifications', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({
           customerEmail:  booking.customer.email,
-          ownerEmail:     OWNER_EMAIL,
           customerSocial: booking.customer.social,
           name:           fullName,
           service:        desc,
@@ -1319,7 +1318,21 @@ async function submitRes() {
         })
       }).catch(e => console.warn('通知送信エラー:', e));
     } else {
-      await new Promise(r => setTimeout(r, 1200));
+      // ── 現金払いのメール通知 ──
+      await fetch('/api/send-notifications', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+          customerEmail:  booking.customer.email,
+          customerSocial: booking.customer.social,
+          name:           fullName,
+          service:        desc,
+          date:           booking.date.toISOString().split('T')[0],
+          time:           booking.time,
+          total:          `¥${total.toLocaleString()}`,
+          payment:        lang==='ja'?'施術前現金払い':'Cash Before Treatment',
+          lang,
+        })
+      }).catch(e => console.warn('通知送信エラー:', e));
     }
 
     // Save to Supabase
