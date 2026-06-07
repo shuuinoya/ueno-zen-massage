@@ -1278,6 +1278,8 @@ async function submitRes() {
   txt.textContent = lang==='ja' ? '処理中...' : 'Processing...';
 
   const total    = booking.menu.price + OUTCALL_FEE;
+  let   finalTotal = total; // カード決済時はサーバー確定金額で上書き
+  let   paymentIntentId = null;
   const fullName = `${booking.customer.last} ${booking.customer.first}`;
   const desc     = `${booking.menu.nameJa} ${booking.menu.dur}min — ${booking.date.toISOString().split('T')[0]} ${booking.time}`;
 
@@ -1299,6 +1301,7 @@ async function submitRes() {
         throw new Error(errData.error || '決済の初期化に失敗しました');
       }
       const { clientSecret, total: confirmedTotal } = await piRes.json();
+      finalTotal = confirmedTotal; // サーバー確定金額を使用
 
       // ── STEP 2: Stripe でカード決済を実行 ──
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
@@ -1306,6 +1309,7 @@ async function submitRes() {
       });
       if (error) throw new Error(error.message);
       if (paymentIntent.status !== 'succeeded') throw new Error('決済が完了しませんでした。カード情報をご確認ください。');
+      paymentIntentId = paymentIntent.id;
 
       // ── STEP 3: メール通知（カード）──
       await fetch('/api/send-notifications', {
@@ -1317,9 +1321,9 @@ async function submitRes() {
           service:        desc,
           date:           booking.date.toISOString().split('T')[0],
           time:           booking.time,
-          total:          `¥${total.toLocaleString()}`,
+          total:          `¥${finalTotal.toLocaleString()}`,
           payment:        'クレジットカード（決済済み）',
-          paymentId:      paymentIntent.id,
+          paymentId:      paymentIntentId,
           lang,
         })
       }).catch(e => console.warn('通知送信エラー:', e));
@@ -1352,7 +1356,8 @@ async function submitRes() {
         menuName:        booking.menu.nameJa,
         durationMin:     booking.menu.dur,
         price:           booking.menu.price,
-        total:           total,
+        total:           finalTotal,
+        paymentIntentId: paymentIntentId || null,
         locationType:    locType,
         hotelName:       booking.locDetail.hotel   || null,
         roomNumber:      booking.locDetail.room     || null,
