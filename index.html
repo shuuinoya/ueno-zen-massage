@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>UENO ZEN MASSAGE — Reservation</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Noto+Serif+JP:wght@200;300;400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjMDgwODA4Ii8+PHRleHQgeD0iMzIiIHk9IjQ2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjQ0IiBmaWxsPSIjYjg5NjVhIiBmb250LWZhbWlseT0ic2VyaWYiPuemhTwvdGV4dD48L3N2Zz4=">
 <script src="https://js.stripe.com/v3/"></script>
 <style>
 :root{
@@ -25,9 +26,14 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 .site-header{position:sticky;top:0;z-index:100;background:rgba(8,8,8,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:56px;gap:10px}
 .logo{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:300;letter-spacing:.2em;color:var(--text);text-transform:uppercase;white-space:nowrap}
 .logo span{color:var(--gold)}
-.lang-sw{display:flex;gap:2px;background:var(--surface2);border-radius:6px;padding:2px;flex-wrap:wrap;justify-content:flex-end}
-.lang-btn{padding:3px 7px;border-radius:4px;font-size:.58rem;letter-spacing:.06em;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;background:transparent;color:var(--text3);transition:all .2s;white-space:nowrap}
-.lang-btn.active{background:var(--gold);color:#000;font-weight:500}
+.lang-sw{position:relative}
+.lang-toggle{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;font-size:.7rem;letter-spacing:.06em;cursor:pointer;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-family:"DM Sans",sans-serif;transition:all .2s;white-space:nowrap}
+.lang-toggle:hover{border-color:var(--gold);color:var(--gold)}
+.lang-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:4px;min-width:145px;z-index:999;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.lang-dropdown.open{display:block}
+.lang-dropdown button{display:block;width:100%;padding:7px 12px;background:none;border:none;color:var(--text2);font-size:.75rem;cursor:pointer;text-align:left;border-radius:4px;font-family:"DM Sans",sans-serif;transition:all .15s}
+.lang-dropdown button:hover,.lang-dropdown button.active{background:rgba(184,150,90,.1);color:var(--gold)}
+.lang-dropdown button.active{font-weight:500}
 
 /* HERO */
 .hero{padding:52px 22px 44px;text-align:center;border-bottom:1px solid var(--border);position:relative;overflow:hidden}
@@ -244,15 +250,18 @@ textarea.fi{resize:vertical}
 <body>
 
 <header class="site-header">
-  <div class="logo">UENO <span>ZEN</span></div>
+  <div class="logo" onclick="goPage('page-hero')" style="cursor:pointer">UENO <span>ZEN</span></div>
   <div class="lang-sw">
-    <button class="lang-btn active" onclick="setLang('ja')">日</button>
-    <button class="lang-btn" onclick="setLang('en')">EN</button>
-    <button class="lang-btn" onclick="setLang('zh')">中</button>
-    <button class="lang-btn" onclick="setLang('es')">ES</button>
-    <button class="lang-btn" onclick="setLang('fr')">FR</button>
-    <button class="lang-btn" onclick="setLang('de')">DE</button>
-    <button class="lang-btn" onclick="setLang('hi')">हि</button>
+    <button class="lang-toggle" id="lang-toggle-btn" onclick="toggleLangMenu()">🌐 <span id="lang-label">言語</span> ▾</button>
+    <div class="lang-dropdown" id="lang-dropdown">
+      <button data-lang="ja" class="active" onclick="setLang('ja');toggleLangMenu()">🇯🇵 日本語</button>
+      <button data-lang="en" onclick="setLang('en');toggleLangMenu()">🇬🇧 English</button>
+      <button data-lang="zh" onclick="setLang('zh');toggleLangMenu()">🇨🇳 中文</button>
+      <button data-lang="es" onclick="setLang('es');toggleLangMenu()">🇪🇸 Español</button>
+      <button data-lang="fr" onclick="setLang('fr');toggleLangMenu()">🇫🇷 Français</button>
+      <button data-lang="de" onclick="setLang('de');toggleLangMenu()">🇩🇪 Deutsch</button>
+      <button data-lang="hi" onclick="setLang('hi');toggleLangMenu()">🇮🇳 हिन्दी</button>
+    </div>
   </div>
 </header>
 
@@ -920,13 +929,26 @@ let slotRefreshTimer = null;
 // ══════════════════════════════════════
 function setLang(l) {
   lang = l;
-  document.querySelectorAll('.lang-btn').forEach(b => {
-    const codes = ['ja','en','zh','es','fr','de','hi'];
-    const i = ['日','EN','中','ES','FR','DE','हि'].indexOf(b.textContent);
-    b.classList.toggle('active', codes[i] === l);
+  const words = {ja:"言語",en:"Language",zh:"语言",es:"Idioma",fr:"Langue",de:"Sprache",hi:"भाषा"};
+  const el = document.getElementById("lang-label");
+  if (el) el.textContent = words[l] || "Language";
+  document.querySelectorAll(".lang-dropdown button[data-lang]").forEach(b => {
+    b.classList.toggle("active", b.dataset.lang === l);
   });
   applyTranslations();
 }
+
+function toggleLangMenu() {
+  const d = document.getElementById("lang-dropdown");
+  if (d) d.classList.toggle("open");
+}
+document.addEventListener("click", function(e) {
+  const sw = document.querySelector(".lang-sw");
+  if (sw && !sw.contains(e.target)) {
+    const d = document.getElementById("lang-dropdown");
+    if (d) d.classList.remove("open");
+  }
+});
 
 function applyTranslations() {
   const t = T[lang];
