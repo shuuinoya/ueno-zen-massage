@@ -936,6 +936,8 @@ function setLang(l) {
     b.classList.toggle("active", b.dataset.lang === l);
   });
   applyTranslations();
+  const ap = document.querySelector('.page.active');
+  if (ap) { const sid = ap.id.replace('page-',''); if(['menu','datetime','location','customer','payment','confirm'].includes(sid)) renderProg(sid); }
 }
 
 function toggleLangMenu() {
